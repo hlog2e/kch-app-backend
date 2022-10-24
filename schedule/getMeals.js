@@ -9,12 +9,8 @@ module.exports = async function getMeals() {
   const startDate = moment(todayDate).add("1", "M").format("YYYYMMDD");
   const endDate = moment(startDate).endOf("M").format("YYYYMMDD");
 
-  console.log(startDate);
-  console.log(endDate);
-
-  const { data } = await axios.get(
-    "https://open.neis.go.kr/hub/mealServiceDietInfo",
-    {
+  const { data } = await axios
+    .get("https://open.neis.go.kr/hub/mealServiceDietInfo", {
       params: {
         key: "d531f1be822747d78988989a2a35d259",
         type: "json",
@@ -23,8 +19,11 @@ module.exports = async function getMeals() {
         MLSV_FROM_YMD: startDate,
         MLSV_TO_YMD: endDate,
       },
-    }
-  );
+    })
+    .catch((err) => {
+      console.log("나이스 급식 API GET 중 에러발생");
+      console.log(err);
+    });
 
   const mealData = data.mealServiceDietInfo[1].row;
 
@@ -49,7 +48,6 @@ module.exports = async function getMeals() {
   });
 
   for (_item of organizedData) {
-    console.log(_item._id);
     await Meal.updateMany(
       { _id: _item.date },
       {
@@ -65,4 +63,7 @@ module.exports = async function getMeals() {
       { upsert: true }
     );
   }
+  console.log(
+    moment(startDate).format("M") + "월 급식데이터를 DB에 캐싱하였습니다."
+  );
 };
