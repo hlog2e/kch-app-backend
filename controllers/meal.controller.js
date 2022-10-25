@@ -4,7 +4,7 @@ module.exports = {
   getMealbyDate: async (req, res) => {
     const { date, limit } = req.query;
 
-    console.log(date);
+    //console.log(date);
     const queryData = await Meal.find({ _id: { $gte: date } })
       .sort({ _id: 1 })
       .limit(limit);

@@ -7,6 +7,7 @@ require("dotenv").config();
 const cookieParser = require("cookie-parser");
 //Mongo DB
 require("./models");
+require("./models/redis");
 
 const getMeals = require("./schedule/getMeals"); // 1개월 단위로 급식데이터 불러오기 위한 스케줄 함수
 //getMeals();
