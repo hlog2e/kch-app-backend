@@ -10,6 +10,9 @@ const userSchema = new mongoose.Schema(
       maxlength: 11,
     },
     name: { type: String, required: true },
+    grade: { type: String, required: true },
+    class: { type: String },
+    number: { type: String },
   },
   { timestamps: true }
 );

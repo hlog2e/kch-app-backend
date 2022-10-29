@@ -2,6 +2,7 @@ const mongoose = require("mongoose");
 
 require("./user");
 require("./meal");
+require("./registerCode");
 
 mongoose.connect(process.env.MONGO_URI);
 

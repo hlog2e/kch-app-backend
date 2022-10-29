@@ -5,7 +5,7 @@ const redisConfig = {
   port: 6379,
   db: 0,
   //  password: ""
-  legacyMode: true,
+  //egacyMode: true,
 };
 
 const redisClient = redis.createClient(redisConfig);
@@ -17,6 +17,6 @@ redisClient.on("error", (err) => {
   console.error("Redis Connection Lost!", err);
 });
 redisClient.connect();
-const redisCli = redisClient.v4;
+const redisCli = redisClient;
 
 module.exports = redisCli;
