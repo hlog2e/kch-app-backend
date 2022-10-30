@@ -4,10 +4,10 @@ const registerCodeSchema = new mongoose.Schema(
   {
     _id: { type: String, maxLength: 5 },
     isUsed: { type: Boolean, required: true },
-    usedUser: { type: String },
+    usedUser: { type: Object },
     issur: { type: String, required: true },
   },
-  { timestamps: true, versionKey: false }
+  { timestamps: true, versionKey: false, collection: "RegisterCodes" }
 );
 
 module.exports = mongoose.model("RegisterCode", registerCodeSchema);

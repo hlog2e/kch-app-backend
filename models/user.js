@@ -14,7 +14,7 @@ const userSchema = new mongoose.Schema(
     class: { type: String },
     number: { type: String },
   },
-  { timestamps: true }
+  { timestamps: true, versionKey: false }
 );
 //userSchema.index({ email: 1, nickname: 1 });
 
