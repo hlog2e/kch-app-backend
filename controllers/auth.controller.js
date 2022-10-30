@@ -76,6 +76,18 @@ module.exports = {
   },
   requestCode: async (req, res) => {
     const phoneNumber = req.body.phoneNumber;
+    const type = req.body.type;
+    if (type === "join") {
+      const alreadyJoinedUser = await User.findOne({
+        phone_number: phoneNumber,
+      });
+      if (alreadyJoinedUser) {
+        return res.status(400).json({
+          status: 400,
+          message: "이미 가입한 회원입니다. 로그인 해주세요!",
+        });
+      }
+    }
     const code = await createCode(phoneNumber);
 
     // await sendSMS(phoneNumber, `[금천고등학교] 인증번호는 [${code}]입니다.`);
