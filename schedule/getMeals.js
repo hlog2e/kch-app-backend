@@ -4,7 +4,7 @@ const moment = require("moment");
 const Meal = require("../models/meal");
 
 module.exports = async function getMeals() {
-  const todayDate = moment("202209").format("YYYYMM");
+  const todayDate = moment().format("YYYYMM");
 
   const startDate = moment(todayDate).add("1", "M").format("YYYYMMDD");
   const endDate = moment(startDate).endOf("M").format("YYYYMMDD");
