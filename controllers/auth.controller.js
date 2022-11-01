@@ -20,18 +20,6 @@ module.exports = {
     // }
   },
   join: async (req, res) => {
-    if (
-      !req.body.phoneNumber ||
-      !req.body.name ||
-      !req.body.grade ||
-      !req.body.registerCode
-    ) {
-      return res.status(400).json({
-        status: 400,
-        message: "가입에 필요한 필수정보가 누락되었습니다.",
-      });
-    }
-
     //가입코드 유효성 확인 및 사용함으로 변경
     const foundRegisterCode = await RegisterCode.findOne({
       _id: req.body.registerCode,
@@ -90,7 +78,7 @@ module.exports = {
     }
     const code = await createCode(phoneNumber);
 
-    // await sendSMS(phoneNumber, `[금천고등학교] 인증번호는 [${code}]입니다.`);
+    await sendSMS(phoneNumber, `[금천고등학교] 인증번호는 [${code}]입니다.`);
     res
       .status(200)
       .json({ status: 200, message: "인증코드가 발송되었습니다." });
@@ -98,11 +86,6 @@ module.exports = {
   validateCode: async (req, res) => {
     const phoneNumber = req.body.phoneNumber;
     const code = req.body.code;
-    if (!phoneNumber || !code) {
-      return res
-        .status(500)
-        .json({ status: 500, message: "요청값이 누락되었습니다." });
-    }
 
     const validated = await validateCode(phoneNumber, code);
 
