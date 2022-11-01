@@ -5,19 +5,25 @@ const { createAccessToken } = require("../utils/jwt");
 
 module.exports = {
   login: async (req, res) => {
-    // const phoneNumber = req.body.phoneNumber;
-    // const code = req.body.code;
-    // if (!phoneNumber || !code) {
-    //   return res
-    //     .status(500)
-    //     .json({ status: 500, message: "요청값이 누락되었습니다." });
-    // }
-    // const validated = validateCode(phoneNumber, code);
-    // if (!validated) {
-    //   res
-    //     .status(500)
-    //     .json({ status: 500, message: "인증번호가 유효하지 않습니다." });
-    // }
+    const phoneNumber = req.body.phoneNumber;
+    const code = req.body.code;
+    const validated = await validateCode(phoneNumber, code);
+    if (!validated) {
+      return res
+        .status(500)
+        .json({ status: 500, message: "인증번호가 유효하지 않습니다." });
+    }
+
+    const user = await User.findOne({ phone_number: phoneNumber });
+
+    const accessToken = await createAccessToken(user._id);
+
+    res.status(200).json({
+      status: 200,
+      message: "정상 처리 되었습니다.",
+      user: user,
+      token: accessToken,
+    });
   },
   join: async (req, res) => {
     //가입코드 유효성 확인 및 사용함으로 변경
@@ -65,16 +71,21 @@ module.exports = {
   requestCode: async (req, res) => {
     const phoneNumber = req.body.phoneNumber;
     const type = req.body.type;
-    if (type === "join") {
-      const alreadyJoinedUser = await User.findOne({
-        phone_number: phoneNumber,
+
+    const alreadyJoinedUser = await User.findOne({
+      phone_number: phoneNumber,
+    });
+    if (type === "join" && alreadyJoinedUser) {
+      return res.status(400).json({
+        status: 400,
+        message: "이미 가입한 회원입니다. 로그인 해주세요!",
       });
-      if (alreadyJoinedUser) {
-        return res.status(400).json({
-          status: 400,
-          message: "이미 가입한 회원입니다. 로그인 해주세요!",
-        });
-      }
+    }
+    if (type === "login" && !alreadyJoinedUser) {
+      return res.status(400).json({
+        status: 400,
+        message: "가입되지 않은 회원입니다. 가입 후 이용해 주세요!",
+      });
     }
     const code = await createCode(phoneNumber);
 
