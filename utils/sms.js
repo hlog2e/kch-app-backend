@@ -7,11 +7,15 @@ const redisCli = require("../models/redis");
 
 module.exports = {
   sendSMS: async (_phoneNum, _msg) => {
-    await messageService.sendOne({
-      to: _phoneNum,
-      from: process.env.SOLAPI_FROM_NUMBER,
-      text: _msg,
-    });
+    try {
+      await messageService.sendOne({
+        to: _phoneNum,
+        from: process.env.SOLAPI_FROM_NUMBER,
+        text: _msg,
+      });
+    } catch (err) {
+      console.log(err);
+    }
   },
   createCode: async (_phoneNumber) => {
     const verifyCode = Math.floor(1000 + Math.random() * 9000); //4자리 난수
