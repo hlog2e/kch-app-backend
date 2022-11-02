@@ -2,7 +2,7 @@ const { validateAccessToken } = require("../utils/jwt");
 
 module.exports = {
   checkToken: async (req, res, next) => {
-    const token = "test";
+    const token = req.headers.authorization.replace("Bearer ", "");
     const validated = await validateAccessToken(token);
 
     if (!validated) {
