@@ -5,7 +5,7 @@ module.exports = {
     const payload = { userId: _userId };
     const newToken = jwt.sign(payload, process.env.JWT_SECRET, {
       algorithm: "HS256",
-      expiresIn: "1s",
+      expiresIn: "1y",
     });
 
     return newToken;
