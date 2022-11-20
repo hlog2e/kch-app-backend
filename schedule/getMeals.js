@@ -4,6 +4,7 @@ const moment = require("moment");
 const Meal = require("../models/meal");
 
 module.exports = async function getMeals() {
+  //const todayDate = moment().subtract("1", "M").format("YYYYMM"); //이번달의 데이터를 불러오고 싶을 떄
   const todayDate = moment().format("YYYYMM");
 
   const startDate = moment(todayDate).add("1", "M").format("YYYYMMDD");
