@@ -3,12 +3,21 @@ const Feed = require("../models/feed");
 module.exports = {
   getFeedItems: async (req, res) => {
     const { offset, limit } = req.query;
+
     const feeds = await Feed.find({})
       .limit(limit)
       .skip(offset)
       .sort({ createAt: -1 });
 
-    res.json({ status: 200, message: "정상 처리 되었습니다.", feeds: feeds });
+    const totalCount = await Feed.count({});
+
+    res.json({
+      status: 200,
+      message: "정상 처리 되었습니다.",
+      feeds: feeds,
+      totalCount: totalCount,
+      nextCursor: Number(offset) + Number(limit),
+    });
   },
 
   uploadSingleFileToS3: (req, res) => {
