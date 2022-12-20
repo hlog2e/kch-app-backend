@@ -1,5 +1,15 @@
+const Feed = require("../models/feed");
+
 module.exports = {
-  getFeedItems: (req, res) => {},
+  getFeedItems: async (req, res) => {
+    const { offset, limit } = req.query;
+    const feeds = await Feed.find({})
+      .limit(limit)
+      .skip(offset)
+      .sort({ createAt: -1 });
+
+    res.json({ status: 200, message: "정상 처리 되었습니다.", feeds: feeds });
+  },
 
   uploadSingleFileToS3: (req, res) => {
     res.json({
