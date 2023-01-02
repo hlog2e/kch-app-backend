@@ -4,6 +4,7 @@ require("./user");
 require("./meal");
 require("./registerCode");
 require("./feed");
+require("./community");
 
 mongoose.connect(process.env.MONGO_URI, {
   auth: { authSource: "admin" },

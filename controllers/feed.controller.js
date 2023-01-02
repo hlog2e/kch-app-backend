@@ -4,10 +4,7 @@ module.exports = {
   getFeedItems: async (req, res) => {
     const { offset, limit } = req.query;
 
-    const feeds = await Feed.find({})
-      .limit(limit)
-      .skip(offset)
-      .sort({ createAt: -1 });
+    const feeds = await Feed.find({}).limit(limit).skip(offset);
 
     const totalCount = await Feed.count({});
 
