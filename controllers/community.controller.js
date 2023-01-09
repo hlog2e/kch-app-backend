@@ -31,4 +31,23 @@ module.exports = {
       nextCursor: Number(offset) + Number(limit),
     });
   },
+  getCommunityDetail: async (req, res) => {
+    const { id } = req.query;
+
+    const data = await Communities.findOne({ _id: id });
+
+    res.json(data);
+  },
+  postComment: async (req, res) => {
+    const user = req.body.user;
+    const comment = req.body.comment;
+
+    console.log(user);
+
+    res.json({
+      status: 200,
+      message: "정상 처리되었습니다.",
+      comment: comment,
+    });
+  },
 };
