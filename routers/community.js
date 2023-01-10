@@ -21,12 +21,18 @@ router.get(
   communityController.getCommunityDetail
 );
 
-router.post("/comment", [
-  body("communityId").notEmpty(),
-  body("comment").notEmpty(),
-  validator,
+router.post(
+  "/comment",
+  [body("communityId").notEmpty(), body("comment").notEmpty(), validator],
   checkToken,
-  communityController.postComment,
-]);
+  communityController.postComment
+);
+
+router.delete(
+  "/comment",
+  [body("communityId").notEmpty(), body("commentId").notEmpty(), validator],
+  checkToken,
+  communityController.deleteComment
+);
 
 module.exports = router;

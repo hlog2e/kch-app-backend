@@ -51,13 +51,13 @@ module.exports = {
     });
   },
   postComment: async (req, res) => {
-    const communityId = req.body.communityId;
-    const comment = req.body.comment;
+    const { communityId, comment } = req.body;
+
     const userId = req.userId;
 
     console.log(userId, communityId);
 
-    const data = await Communities.update(
+    await Communities.update(
       { _id: communityId },
       {
         $push: {
@@ -71,12 +71,25 @@ module.exports = {
       }
     );
 
-    console.log(data);
-
     res.json({
       status: 200,
       message: "정상 처리되었습니다.",
       comment: comment,
     });
+  },
+
+  deleteComment: async (req, res) => {
+    const { communityId, commentId } = req.body;
+    const userId = req.userId;
+
+    //TODO: 댓글 삭제전 자기가 쓴 댓글인지 판별해주는 로직 추가 필요
+    const result = await Communities.update(
+      { _id: communityId },
+      { $pull: { comments: { _id: commentId } } }
+    );
+
+    console.log(result, communityId, commentId);
+
+    res.json({ status: 200, message: "정상 처리되었습니다." });
   },
 };
