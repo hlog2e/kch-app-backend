@@ -8,6 +8,7 @@ const { query, body } = require("express-validator");
 
 const uploader = require("../middlewares/multer");
 const feedController = require("../controllers/feed.controller");
+const { checkToken } = require("../middlewares/auth");
 
 router.get(
   "",
@@ -21,9 +22,10 @@ router.get(
 );
 
 router.post("/comment", [
-  body("user").notEmpty(),
+  body("communityId").notEmpty(),
   body("comment").notEmpty(),
   validator,
+  checkToken,
   communityController.postComment,
 ]);
 

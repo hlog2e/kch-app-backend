@@ -12,10 +12,10 @@ module.exports = {
   },
   validateAccessToken: async (_token) => {
     try {
-      await jwt.verify(_token, process.env.JWT_SECRET);
-      return true;
+      const payload = await jwt.verify(_token, process.env.JWT_SECRET);
+      return { validated: true, payload: payload };
     } catch (err) {
-      return false;
+      return { validated: false };
     }
   },
 };

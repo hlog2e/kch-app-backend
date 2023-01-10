@@ -1,4 +1,7 @@
 const Communities = require("../models/community");
+const mongoose = require("mongoose");
+const ObjectID = mongoose.Types.ObjectId();
+const moment = require("moment");
 
 module.exports = {
   getCommunityItems: async (req, res) => {
@@ -33,16 +36,43 @@ module.exports = {
   },
   getCommunityDetail: async (req, res) => {
     const { id } = req.query;
-
     const data = await Communities.findOne({ _id: id });
 
-    res.json(data);
+    res.json({
+      _id: data._id,
+      title: data.title,
+      content: data.content,
+      likes: data.likes,
+      likeCount: data.likes.length,
+      comments: data.comments,
+      commentCount: data.comments.length,
+      images: data.images,
+      publisher: data.publisher,
+      createdAt: data.createdAt,
+    });
   },
   postComment: async (req, res) => {
-    const user = req.body.user;
+    const communityId = req.body.communityId;
     const comment = req.body.comment;
+    const userId = req.userId;
 
-    console.log(user);
+    console.log(userId, communityId);
+
+    const data = await Communities.update(
+      { _id: communityId },
+      {
+        $push: {
+          comments: {
+            _id: ObjectID,
+            issuer: userId,
+            comment: comment,
+            createdAt: moment(),
+          },
+        },
+      }
+    );
+
+    console.log(data);
 
     res.json({
       status: 200,
