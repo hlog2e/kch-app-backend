@@ -4,8 +4,8 @@ const moment = require("moment");
 const Meal = require("../models/meal");
 
 module.exports = async function getMeals() {
-  //const todayDate = moment().subtract("1", "M").format("YYYYMM"); //이번달의 데이터를 불러오고 싶을 떄
-  const todayDate = moment().format("YYYYMM");
+  const todayDate = moment().subtract("1", "M").format("YYYYMM"); //이번달의 데이터를 불러오고 싶을 떄
+  //const todayDate = moment().format("YYYYMM");
 
   const startDate = moment(todayDate).add("1", "M").format("YYYYMMDD");
   const endDate = moment(startDate).endOf("M").format("YYYYMMDD");
@@ -26,6 +26,12 @@ module.exports = async function getMeals() {
       console.log(err);
     });
 
+  if (!data.mealServiceDietInfo) {
+    console.log(
+      moment(startDate).format("M") + "월의 급식데이터가 존재하지 않음."
+    );
+    return;
+  }
   const mealData = data.mealServiceDietInfo[1].row;
 
   let organizedData = [];
