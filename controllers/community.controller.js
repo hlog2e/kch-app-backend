@@ -1,6 +1,5 @@
 const Communities = require("../models/community");
-const mongoose = require("mongoose");
-const ObjectID = mongoose.Types.ObjectId();
+const uuid = require("uuid");
 const moment = require("moment");
 
 module.exports = {
@@ -63,7 +62,7 @@ module.exports = {
       {
         $push: {
           comments: {
-            _id: ObjectID,
+            _id: uuid.v4(),
             issuer: userId,
             comment: comment,
             createdAt: moment(),
