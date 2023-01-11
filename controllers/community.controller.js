@@ -55,8 +55,6 @@ module.exports = {
 
     const userId = req.userId;
 
-    console.log(userId, communityId);
-
     await Communities.update(
       { _id: communityId },
       {
@@ -88,7 +86,29 @@ module.exports = {
       { $pull: { comments: { _id: commentId } } }
     );
 
-    console.log(result, communityId, commentId);
+    res.json({ status: 200, message: "정상 처리되었습니다." });
+  },
+
+  addLike: async (req, res) => {
+    const { communityId } = req.body;
+    const userId = req.userId;
+
+    await Communities.update(
+      { _id: communityId },
+      { $push: { likes: userId } }
+    );
+
+    res.json({ status: 200, message: "정상 처리되었습니다." });
+  },
+
+  deleteLike: async (req, res) => {
+    const { communityId } = req.body;
+    const userId = req.userId;
+
+    await Communities.update(
+      { _id: communityId },
+      { $pull: { likes: userId } }
+    );
 
     res.json({ status: 200, message: "정상 처리되었습니다." });
   },

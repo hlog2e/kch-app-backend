@@ -35,4 +35,17 @@ router.delete(
   communityController.deleteComment
 );
 
+router.post(
+  "/like",
+  [body("communityId").notEmpty(), validator],
+  checkToken,
+  communityController.addLike
+);
+router.delete(
+  "/like",
+  [body("communityId").notEmpty(), validator],
+  checkToken,
+  communityController.deleteLike
+);
+
 module.exports = router;
