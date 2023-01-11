@@ -6,7 +6,9 @@ module.exports = {
   getCommunityItems: async (req, res) => {
     const { offset, limit } = req.query;
 
-    const beforeSort = await Communities.find({}).limit(limit).skip(offset);
+    const beforeSort = await Communities.find({ status: "normal" })
+      .limit(limit)
+      .skip(offset);
 
     const totalCount = await Communities.count({});
 
@@ -35,8 +37,13 @@ module.exports = {
   },
   getCommunityDetail: async (req, res) => {
     const { id } = req.query;
-    const data = await Communities.findOne({ _id: id });
+    const data = await Communities.findOne({ _id: id, status: "normal" });
 
+    if (!data) {
+      return res
+        .status(404)
+        .json({ status: 404, message: "존재하지 않는 게시글 입니다." });
+    }
     res.json({
       _id: data._id,
       title: data.title,
@@ -111,5 +118,18 @@ module.exports = {
     );
 
     res.json({ status: 200, message: "정상 처리되었습니다." });
+  },
+
+  deleteCommunity: async (req, res) => {
+    const { communityId } = req.body;
+    const userId = req.userId;
+
+    const community = await Communities.findOne({ _id: communityId });
+
+    if (community.publisher === userId) {
+      await Communities.update({ _id: communityId }, { status: "deleted" });
+      return res.json({ status: 200, message: "정상 처리되었습니다." });
+    }
+    res.status(403).json({ status: 403, message: "권한이 없습니다." });
   },
 };

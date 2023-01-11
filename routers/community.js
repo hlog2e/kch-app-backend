@@ -47,5 +47,11 @@ router.delete(
   checkToken,
   communityController.deleteLike
 );
+router.delete(
+  "",
+  [body("communityId").notEmpty(), validator],
+  checkToken,
+  communityController.deleteCommunity
+);
 
 module.exports = router;
