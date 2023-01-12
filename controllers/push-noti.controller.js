@@ -7,9 +7,9 @@ module.exports = {
     const userId = req.userId;
     console.log(token, userId);
 
-    await PushToken.update(
-      {},
-      { _id: token, user_id: userId },
+    await PushToken.updateOne(
+      { _id: token },
+      { user_id: userId },
       { upsert: true }
     );
 
