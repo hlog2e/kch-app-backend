@@ -7,7 +7,7 @@ const registerCodeSchema = new mongoose.Schema(
     usedUser: { type: Object },
     issur: { type: String, required: true },
   },
-  { timestamps: true, versionKey: false, collection: "RegisterCodes" }
+  { timestamps: true, versionKey: false, collection: "register-codes" }
 );
 
 module.exports = mongoose.model("RegisterCode", registerCodeSchema);

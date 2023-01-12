@@ -6,6 +6,7 @@ require("./registerCode");
 require("./feed");
 require("./community");
 require("./banner");
+require("./pushToken");
 
 mongoose.connect(process.env.MONGO_URI, {
   auth: { authSource: "admin" },
