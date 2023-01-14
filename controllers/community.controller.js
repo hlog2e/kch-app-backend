@@ -8,7 +8,8 @@ module.exports = {
 
     const beforeSort = await Communities.find({ status: "normal" })
       .limit(limit)
-      .skip(offset);
+      .skip(offset)
+      .sort({ createdAt: -1 });
 
     const totalCount = await Communities.count({});
 
@@ -33,6 +34,32 @@ module.exports = {
       communities: afterSort,
       totalCount: totalCount,
       nextCursor: Number(offset) + Number(limit),
+    });
+  },
+  postCommunityItemWithImageUploader: async (req, res) => {
+    const { title, content } = req.body;
+    const userId = req.userId;
+    let uploadedImageUrls = [];
+
+    if (req.files) {
+      req.files.map(({ key }) => {
+        uploadedImageUrls.push("https://static.kch-app.me/" + key);
+      });
+    }
+
+    const data = await Communities.create({
+      title: title,
+      content: content,
+      images: uploadedImageUrls,
+      publisher: userId,
+      status: "normal",
+    });
+
+    console.log(data);
+
+    res.json({
+      status: 200,
+      message: "정상적으로 업로드 되었습니다.",
     });
   },
   getCommunityDetail: async (req, res) => {

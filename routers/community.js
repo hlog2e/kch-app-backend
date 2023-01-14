@@ -7,7 +7,6 @@ const { validator } = require("../middlewares/exporess-validator");
 const { query, body } = require("express-validator");
 
 const uploader = require("../middlewares/multer");
-const feedController = require("../controllers/feed.controller");
 const { checkToken } = require("../middlewares/auth");
 
 router.get(
@@ -15,6 +14,13 @@ router.get(
   [query("offset").notEmpty(), query("limit").notEmpty(), validator],
   communityController.getCommunityItems
 );
+router.post(
+  "",
+  checkToken,
+  uploader.array("image"),
+  communityController.postCommunityItemWithImageUploader
+);
+
 router.get(
   "/detail",
   [query("id").notEmpty(), validator],

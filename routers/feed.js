@@ -13,10 +13,5 @@ router.get(
   [query("offset").notEmpty(), query("limit").notEmpty(), validator],
   feedController.getFeedItems
 );
-router.post(
-  "/image",
-  uploader.single("image"),
-  feedController.uploadSingleFileToS3
-);
 
 module.exports = router;
