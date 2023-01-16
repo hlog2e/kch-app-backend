@@ -11,6 +11,7 @@ const { checkToken } = require("../middlewares/auth");
 
 router.get(
   "",
+  checkToken,
   [query("offset").notEmpty(), query("limit").notEmpty(), validator],
   communityController.getCommunityItems
 );
@@ -23,6 +24,7 @@ router.post(
 
 router.get(
   "/detail",
+  checkToken,
   [query("id").notEmpty(), validator],
   communityController.getCommunityDetail
 );
