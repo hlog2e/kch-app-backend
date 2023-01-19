@@ -99,7 +99,8 @@ module.exports = {
     const code = req.body.code;
 
     // 플레이 스토어 및 앱 심사시 테스트 계정은 통과 ----------------
-    if (phoneNumber === "01000000000" && code === "5231") {
+    if (phoneNumber === "01000000000" && code === 5231) {
+      console.log("인증코드 테스트계정 01000000000 인증됨");
       return res.status(200).json({
         status: 200,
         message: "유효한 인증번호 입니다.",
