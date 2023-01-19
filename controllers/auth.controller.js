@@ -12,6 +12,8 @@ module.exports = {
     let validated;
     if (phoneNumber === "01000000000" && code === "5231") {
       validated = true;
+    } else {
+      validated = await validateCode(phoneNumber, code);
     }
     // --------------------------------------------------
 
