@@ -109,7 +109,16 @@ module.exports = {
     const phoneNumber = req.body.phoneNumber;
     const code = req.body.code;
 
-    const validated = await validateCode(phoneNumber, code);
+    // 플레이 스토어 및 앱 심사시 테스트 계정은 통과 ----------------
+    let validated;
+    if (phoneNumber === "01000000000" && code === "5231") {
+      validated = true;
+    } else {
+      validated = await validateCode(phoneNumber, code);
+    }
+    // --------------------------------------------------
+
+    //const validated = await validateCode(phoneNumber, code);
 
     if (validated) {
       return res.status(200).json({
