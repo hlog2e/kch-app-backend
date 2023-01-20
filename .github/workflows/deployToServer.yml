@@ -16,6 +16,7 @@ jobs:
         script: |
           cd src/kch-app-backend/
           git pull
+          npm install
           pm2 kill && pm2 start ecosystem.config.js
         
     - name: Discord notification
@@ -23,4 +24,4 @@ jobs:
           DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
       uses: Ilshidur/action-discord@master
       with:
-        args: 'The project {{ EVENT_PAYLOAD.repository.full_name }} has been deployed.'
+        args: 'The project {{ EVENT_PAYLOAD.repository.full_name }} has been successfully deployed.'
