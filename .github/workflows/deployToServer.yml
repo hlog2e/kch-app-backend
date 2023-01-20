@@ -13,4 +13,7 @@ jobs:
         username: ${{ secrets.USERNAME }}
         key: ${{ secrets.KEY }}
         port: ${{ secrets.PORT }}
-        script: pwd
+        script: |
+          cd src/kch-app-backend/
+          git pull
+          pm2 kill && pm2 start ecosystem.config.js
