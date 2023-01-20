@@ -27,8 +27,8 @@ router.post(
       .notEmpty()
       .isLength({ min: 11, max: 11 }),
     body("name").notEmpty(),
-    body("grade").isInt().notEmpty().isLength({ min: 1, max: 1 }),
-    body("number").isInt().optional({ nullable: true }),
+    body("grade").notEmpty(),
+    body("number").notEmpty(),
     body("registerCode").notEmpty().isLength({ min: 5, max: 5 }),
     validator,
   ],
