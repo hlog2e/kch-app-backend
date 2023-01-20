@@ -109,9 +109,9 @@ module.exports = {
     const phoneNumber = req.body.phoneNumber;
     const code = req.body.code;
 
-    // 플레이 스토어 및 앱 심사시 테스트 계정은 통과 ----------------
+    // 플레이 스토어 및 앱 심사시 테스트 가입 ----------------
     let validated;
-    if (phoneNumber === "01000000000" && code === "5231") {
+    if (phoneNumber === "01011111111" && code === "5231") {
       validated = true;
     } else {
       validated = await validateCode(phoneNumber, code);
