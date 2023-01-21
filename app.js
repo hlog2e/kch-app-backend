@@ -45,6 +45,7 @@ app.use(express.json());
 app.use(morgan);
 app.use(helmet());
 app.use(cookieParser());
+app.enable("trust proxy");
 
 const mainRouter = require("./routers");
 
