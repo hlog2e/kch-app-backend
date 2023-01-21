@@ -22,12 +22,12 @@ module.exports = async function getMeals() {
       },
     })
     .catch((err) => {
-      console.log("나이스 급식 API GET 중 에러발생");
-      console.log(err);
+      console.error("나이스 급식 API GET 중 에러발생");
+      console.error(err);
     });
 
   if (!data.mealServiceDietInfo) {
-    console.log(
+    console.error(
       moment(startDate).format("M") + "월의 급식데이터가 존재하지 않음."
     );
     return;
