@@ -42,7 +42,7 @@ app.use(cors(corsOptions));
 
 //express init
 app.use(express.json());
-app.use(morgan);
+app.use(morgan("combined"));
 app.use(helmet());
 app.use(cookieParser());
 app.set("trust proxy", "127.0.0.1");
