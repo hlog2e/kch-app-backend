@@ -33,6 +33,7 @@ module.exports = {
         status: 200,
         message: "정상적으로 푸시알림을 보냈습니다.",
         tickets: result,
+        link: link,
       });
     } catch (_err) {
       return res
