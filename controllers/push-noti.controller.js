@@ -16,7 +16,7 @@ module.exports = {
     res.json({ status: 200, message: "푸시 알림 등록을 성공했습니다." });
   },
   sendNotificationToEveryone: async (req, res) => {
-    const { title, message } = req.body;
+    const { title, message, link } = req.body;
 
     const data = await PushToken.find();
     let receiverArray = [];
@@ -26,7 +26,9 @@ module.exports = {
     }
 
     try {
-      const result = await sendNotification(receiverArray, title, message);
+      const result = await sendNotification(receiverArray, title, message, {
+        link: link,
+      });
       res.json({
         status: 200,
         message: "정상적으로 푸시알림을 보냈습니다.",
