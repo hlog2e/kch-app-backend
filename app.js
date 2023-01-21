@@ -48,9 +48,6 @@ app.use(cookieParser());
 app.set("trust proxy", "127.0.0.1");
 
 const mainRouter = require("./routers");
-app.use((req, res, next) => {
-  console.log(req);
-});
 app.use(mainRouter);
 
 //에러 핸들링
