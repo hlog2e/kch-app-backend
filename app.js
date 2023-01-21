@@ -45,7 +45,7 @@ app.use(express.json());
 app.use(morgan);
 app.use(helmet());
 app.use(cookieParser());
-app.enable("trust proxy");
+app.set("trust proxy", "127.0.0.1");
 
 const mainRouter = require("./routers");
 
