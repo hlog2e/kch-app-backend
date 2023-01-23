@@ -13,10 +13,4 @@ router.post(
   pushNotiController.registerPushToken
 );
 
-router.post(
-  "/everyone",
-  [body("title").notEmpty(), body("message").notEmpty(), validator],
-  pushNotiController.sendNotificationToEveryone
-);
-
 module.exports = router;
