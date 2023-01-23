@@ -29,6 +29,27 @@ router.get(
   communityController.getCommunityDetail
 );
 
+router.get("/blocked_users", checkToken, communityController.getBlockedUsers);
+router.post(
+  "/block_user",
+  checkToken,
+  [body("blockUserId").notEmpty(), validator],
+  communityController.postBlockUser
+);
+
+router.post(
+  "/report",
+  checkToken,
+  [body("postId").notEmpty(), validator],
+  communityController.postReportCommunityItem
+);
+router.post(
+  "/report/comment",
+  checkToken,
+  [body("postId").notEmpty(), body("commentId").notEmpty(), validator],
+  communityController.postReportComment
+);
+
 router.post(
   "/comment",
   [body("communityId").notEmpty(), body("comment").notEmpty(), validator],

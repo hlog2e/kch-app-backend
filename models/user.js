@@ -13,6 +13,8 @@ const userSchema = new mongoose.Schema(
     grade: { type: String, required: true },
     class: { type: String },
     number: { type: String },
+    agreement: { type: Boolean },
+    blocked_users: [],
   },
   { timestamps: true, versionKey: false }
 );

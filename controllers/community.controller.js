@@ -1,12 +1,21 @@
 const Communities = require("../models/community");
+const User = require("../models/user");
+const Report = require("../models/report");
 const uuid = require("uuid");
 const moment = require("moment");
 
 module.exports = {
   getCommunityItems: async (req, res) => {
     const { offset, limit } = req.query;
+    const userId = req.userId;
 
-    const beforeSort = await Communities.find({ status: "normal" })
+    //차단한 유저 리스트 쿼리
+    const { blocked_users } = await User.findOne({ _id: userId });
+
+    const beforeSort = await Communities.find({
+      status: "normal",
+      publisher: { $nin: blocked_users }, //차단한 유저의 게시물은 제외 후 쿼리
+    })
       .limit(limit)
       .skip(offset)
       .sort({ createdAt: -1 });
@@ -158,5 +167,57 @@ module.exports = {
       return res.json({ status: 200, message: "정상 처리되었습니다." });
     }
     res.status(403).json({ status: 403, message: "권한이 없습니다." });
+  },
+
+  getBlockedUsers: async (req, res) => {
+    const userId = req.userId;
+
+    const { blocked_users } = await User.findOne({ _id: userId });
+
+    res.json(blocked_users);
+  },
+
+  postBlockUser: async (req, res) => {
+    const userId = req.userId;
+    const { blockUserId } = req.body;
+
+    await User.updateOne(
+      { _id: userId },
+      { $addToSet: { blocked_users: blockUserId } }
+    );
+
+    res.json({ status: 200, message: `유저 ${blockUserId}를 차단하였습니다.` });
+  },
+
+  postReportCommunityItem: async (req, res) => {
+    const userId = req.userId;
+    const { postId } = req.body;
+
+    await Report.create({
+      type: "post",
+      post_id: postId,
+      issuer: userId,
+      status: "open",
+    });
+
+    res.json({ status: 200, message: "정상적으로 신고처리 되었습니다." });
+  },
+
+  postReportComment: async (req, res) => {
+    const userId = req.userId;
+    const { postId, commentId } = req.body;
+
+    await Report.create({
+      type: "comment",
+      post_id: postId,
+      comment_id: commentId,
+      issuer: userId,
+      status: "open",
+    });
+
+    res.json({
+      status: 200,
+      message: "정상적으로 해당 댓글이 신고처리 되었습니다.",
+    });
   },
 };

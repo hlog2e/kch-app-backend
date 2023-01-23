@@ -58,6 +58,7 @@ module.exports = {
         grade: req.body.grade,
         class: req.body.class,
         number: req.body.number,
+        agreement: true,
       });
 
       await RegisterCode.updateOne(
