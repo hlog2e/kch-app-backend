@@ -59,6 +59,7 @@ module.exports = {
         class: req.body.class,
         number: req.body.number,
         agreement: true,
+        blocked_users: [],
       });
 
       await RegisterCode.updateOne(
