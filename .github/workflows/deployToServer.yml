@@ -24,4 +24,4 @@ jobs:
           DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
       uses: Ilshidur/action-discord@master
       with:
-        args: 'The project {{ EVENT_PAYLOAD.action }} has been successfully deployed.'
+        args: '프로젝트 {{ EVENT_PAYLOAD.repository.full_name  }} 의 배포가 완료되었습니다.'
