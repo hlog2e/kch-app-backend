@@ -24,4 +24,4 @@ jobs:
           DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
       uses: Ilshidur/action-discord@master
       with:
-        args: 'The project {{ EVENT_PAYLOAD }} has been successfully deployed.'
+        args: 'The project {{ EVENT_PAYLOAD.action }} has been successfully deployed.'
