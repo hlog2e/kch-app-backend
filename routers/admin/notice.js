@@ -1,7 +1,7 @@
 const express = require("express");
 const router = express.Router();
 
-const noticeController = require("../../controllers/notice.controller");
+const noticeController = require("../../controllers/admin/notice.admin.controller");
 const { validator } = require("../../middlewares/exporess-validator");
 const { body } = require("express-validator");
 

@@ -5,7 +5,7 @@ const registerCodeSchema = new mongoose.Schema(
     _id: { type: String, maxLength: 5 },
     isUsed: { type: Boolean, required: true },
     usedUser: { type: Object },
-    issur: { type: String, required: true },
+    issuer: { type: String, required: true },
   },
   { timestamps: true, versionKey: false, collection: "register_codes" }
 );
