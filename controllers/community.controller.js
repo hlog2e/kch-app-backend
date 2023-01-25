@@ -1,8 +1,10 @@
 const Communities = require("../models/community");
 const User = require("../models/user");
 const Report = require("../models/report");
+const PushToken = require("../models/pushToken");
 const uuid = require("uuid");
 const moment = require("moment");
+const { sendNotification } = require("../utils/expo-notifications");
 
 module.exports = {
   getCommunityItems: async (req, res) => {
@@ -95,7 +97,6 @@ module.exports = {
   },
   postComment: async (req, res) => {
     const { communityId, comment } = req.body;
-
     const userId = req.userId;
 
     await Communities.update(
@@ -111,6 +112,29 @@ module.exports = {
         },
       }
     );
+
+    // 해당부분 부터는 글 작성자에게 다른 사람이 댓글 남겼을 때 알림 전송하는 로직 --------------
+    const { publisher, title } = await Communities.findOne({
+      _id: communityId,
+    });
+
+    const pushTokens = await PushToken.find({ user_id: publisher });
+    let receiverArray = [];
+
+    pushTokens.map(({ _id }) => {
+      receiverArray.push(_id);
+    });
+
+    //댓글 작성자가 커뮤니티 글의 작성자 본인이 아닐 시 알림 전송
+    if (userId !== publisher) {
+      sendNotification(
+        receiverArray,
+        `내 게시물 "${title}"에 댓글이 달렸어요!`,
+        comment,
+        { link: "" }
+      );
+    }
+    //----------------------------------------------------------------------
 
     res.json({
       status: 200,
