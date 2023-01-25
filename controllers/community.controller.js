@@ -131,7 +131,7 @@ module.exports = {
         receiverArray,
         `내 게시물 "${title}"에 댓글이 달렸어요!`,
         comment,
-        { link: "" }
+        { link: "kch://community-detail-screen/" + communityId }
       );
     }
     //----------------------------------------------------------------------
