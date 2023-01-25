@@ -156,14 +156,4 @@ module.exports = {
       isValidate: true,
     });
   },
-
-  modifyUserInfo: async (req, res) => {
-    const userId = req.userId;
-    await User.updateOne(
-      { _id: userId },
-      { grade: req.body.grade, class: req.body.class, number: req.body.number }
-    );
-
-    res.json({ status: 200, message: "정보 수정을 완료했습니다." });
-  },
 };

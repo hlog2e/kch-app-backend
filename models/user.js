@@ -15,6 +15,7 @@ const userSchema = new mongoose.Schema(
     number: { type: String },
     agreement: { type: Boolean },
     blocked_users: [],
+    photo: { type: String },
   },
   { timestamps: true, versionKey: false }
 );

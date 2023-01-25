@@ -4,7 +4,6 @@ const { body } = require("express-validator");
 const { validator } = require("../middlewares/exporess-validator");
 
 const authController = require("../controllers/auth.controller");
-const { checkToken } = require("../middlewares/auth");
 
 router.post(
   "/login",
@@ -68,18 +67,6 @@ router.post(
   body("registerCode").notEmpty().isLength({ min: 5, max: 5 }),
   [validator],
   authController.validateRegisterCode
-);
-
-router.post(
-  "/modify/userInfo",
-  checkToken,
-  [
-    body("grade").notEmpty(),
-    body("class").notEmpty(),
-    body("number").notEmpty(),
-    validator,
-  ],
-  authController.modifyUserInfo
 );
 
 module.exports = router;
