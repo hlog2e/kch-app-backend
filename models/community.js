@@ -7,6 +7,7 @@ const communitySchema = new mongoose.Schema(
     content: { type: String },
     likes: [],
     comments: [],
+    views: { type: Number },
     images: [],
     publisher: { type: String },
   },

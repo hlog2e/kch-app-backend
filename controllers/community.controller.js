@@ -33,6 +33,7 @@ module.exports = {
         likeCount: _item.likes.length,
         comments: _item.comments,
         commentCount: _item.comments.length,
+        views: _item.views,
         images: _item.images,
         publisher: _item.publisher,
         createdAt: _item.createdAt,
@@ -82,6 +83,12 @@ module.exports = {
         .status(404)
         .json({ status: 404, message: "존재하지 않는 게시글 입니다." });
     }
+
+    await Communities.updateOne(
+      { _id: id },
+      { $inc: { views: 1 } },
+      { upsert: true }
+    );
     res.json({
       _id: data._id,
       title: data.title,
