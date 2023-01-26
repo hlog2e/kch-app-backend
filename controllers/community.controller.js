@@ -4,7 +4,10 @@ const Report = require("../models/report");
 const PushToken = require("../models/pushToken");
 const uuid = require("uuid");
 const moment = require("moment");
-const { sendNotification } = require("../utils/expo-notifications");
+const {
+  sendNotification,
+  sendNotificationByCategory,
+} = require("../utils/expo-notifications");
 
 module.exports = {
   getCommunityItems: async (req, res) => {
@@ -59,7 +62,7 @@ module.exports = {
       });
     }
 
-    const data = await Communities.create({
+    await Communities.create({
       title: title,
       content: content,
       images: uploadedImageUrls,
@@ -67,7 +70,13 @@ module.exports = {
       status: "normal",
     });
 
-    console.log(data);
+    await sendNotificationByCategory(
+      "newPost",
+      "커뮤니티에 새로운 글이 올라왔어요!",
+      title + "\n\n※ 알림 끄기는 더보기 > 알림설정",
+      "kch://community",
+      [userId]
+    );
 
     res.json({
       status: 200,

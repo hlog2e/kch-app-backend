@@ -17,6 +17,7 @@ const userSchema = new mongoose.Schema(
     blocked_users: [],
     photo: { type: String },
     barcode: { type: String },
+    notifications: [],
   },
   { timestamps: true, versionKey: false }
 );
