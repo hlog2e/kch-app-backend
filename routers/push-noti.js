@@ -13,4 +13,11 @@ router.post(
   pushNotiController.registerPushToken
 );
 
+router.post(
+  "/unRegister",
+  [body("token").notEmpty(), validator],
+  checkToken,
+  pushNotiController.unRegisterPushToken
+);
+
 module.exports = router;
