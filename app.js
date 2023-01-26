@@ -21,7 +21,6 @@ if (process.env.INSTANCE_VAR === "0") {
 
 //For Uptime Checker
 app.get("/", (req, res) => {
-  console.log(req.headers);
   res.json({ status: 200, message: "Welcome" });
 });
 
@@ -48,6 +47,7 @@ app.use(cookieParser());
 app.set("trust proxy", "127.0.0.1");
 
 const mainRouter = require("./routers");
+const { sendNotificationByCategory } = require("./utils/expo-notifications");
 app.use(mainRouter);
 
 //에러 핸들링
