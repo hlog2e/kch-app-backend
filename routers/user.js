@@ -28,4 +28,11 @@ router.post(
   userController.registerPhoto
 );
 
+router.post(
+  "/register/barcode",
+  [body("barcode").notEmpty(), validator],
+  checkToken,
+  userController.registerBarCode
+);
+
 module.exports = router;
