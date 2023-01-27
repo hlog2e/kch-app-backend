@@ -35,4 +35,17 @@ router.post(
   userController.registerBarCode
 );
 
+router.get(
+  "/notificationSetting",
+  checkToken,
+  userController.getCurrentNotificationSetting
+);
+
+router.post(
+  "/notificationSetting",
+  [body("category").notEmpty(), body("isRegister").notEmpty(), validator],
+  checkToken,
+  userController.postUpdateNotificationSetting
+);
+
 module.exports = router;

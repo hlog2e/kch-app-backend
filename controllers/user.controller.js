@@ -47,4 +47,37 @@ module.exports = {
       barcode: barcode,
     });
   },
+
+  getCurrentNotificationSetting: async (req, res) => {
+    const userId = req.userId;
+    const { notifications } = await User.findOne({ _id: userId });
+    res.json(notifications);
+  },
+  postUpdateNotificationSetting: async (req, res) => {
+    const { category, isRegister } = req.body;
+    const userId = req.userId;
+
+    //들어오는 요청이 카테고리를 등록하는 요청이면
+    if (isRegister) {
+      await User.update(
+        { _id: userId },
+        { $addToSet: { notifications: category } }
+      );
+
+      return res.json({
+        status: 200,
+        message: `$알림 {category}를 수신합니다.`,
+      });
+    } else {
+      await User.update(
+        { _id: userId },
+        { $pull: { notifications: category } }
+      );
+
+      return res.json({
+        status: 200,
+        message: `$알림 {category}를 수신하지 않습니다.`,
+      });
+    }
+  },
 };
