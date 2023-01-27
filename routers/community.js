@@ -29,6 +29,12 @@ router.get(
   communityController.getCommunityDetail
 );
 
+router.get(
+  "/mine",
+  checkToken,
+  communityController.getCommunitiesWrittenByUser
+);
+
 router.get("/blocked_users", checkToken, communityController.getBlockedUsers);
 router.post(
   "/block_user",

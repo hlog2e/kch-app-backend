@@ -111,6 +111,18 @@ module.exports = {
       createdAt: data.createdAt,
     });
   },
+  getCommunitiesWrittenByUser: async (req, res) => {
+    const userId = req.userId;
+
+    const data = await Communities.find({
+      issuer: userId,
+      status: "normal",
+    }).sort({ createdAt: -1 });
+
+    console.log(data, userId);
+
+    res.json(data);
+  },
   postComment: async (req, res) => {
     const { communityId, comment } = req.body;
     const userId = req.userId;
