@@ -119,8 +119,6 @@ module.exports = {
       status: "normal",
     }).sort({ createdAt: -1 });
 
-    console.log(data, userId);
-
     res.json(data);
   },
   postComment: async (req, res) => {
