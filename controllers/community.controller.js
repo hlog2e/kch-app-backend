@@ -115,7 +115,7 @@ module.exports = {
     const userId = req.userId;
 
     const data = await Communities.find({
-      issuer: userId,
+      publisher: userId,
       status: "normal",
     }).sort({ createdAt: -1 });
 
