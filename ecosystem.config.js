@@ -9,6 +9,8 @@ module.exports = {
       autorestart: true, // 프로세스 실패 시 자동으로 재시작할지 선택
       watch: false, // 파일이 변경되었을 때 재시작 할지 선택
       instance_var: "INSTANCE_VAR",
+      error_file: "./logs/error.log",
+      out_file: "./logs/all.logs",
       // env: {
       //     // 개발 환경설정
       //     NODE_ENV: 'development',
