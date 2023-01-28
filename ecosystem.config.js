@@ -10,7 +10,7 @@ module.exports = {
       watch: false, // 파일이 변경되었을 때 재시작 할지 선택
       instance_var: "INSTANCE_VAR",
       error_file: "./logs/error.log",
-      out_file: "./logs/all.logs",
+      out_file: "./logs/all.log",
       // env: {
       //     // 개발 환경설정
       //     NODE_ENV: 'development',
