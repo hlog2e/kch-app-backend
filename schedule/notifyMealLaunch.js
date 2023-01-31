@@ -3,7 +3,7 @@ const moment = require("moment");
 const { sendNotificationByCategory } = require("../utils/expo-notifications");
 
 module.exports = async function notifyMealLaunch() {
-  const todayDate = moment().format("20221201");
+  const todayDate = moment().format("YYYYMMDD");
   const mealData = await Meal.findOne({ _id: todayDate });
 
   if (!mealData) {
