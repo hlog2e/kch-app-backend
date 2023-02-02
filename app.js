@@ -12,9 +12,13 @@ require("./models");
 require("./models/redis");
 
 const getMeals = require("./schedule/getMeals"); // 1개월 단위로 급식데이터 불러오기 위한 스케줄 함수
+const getWeatherAndNotify = require("./schedule/getWeatherAndNotify");
 const notifyMealLaunch = require("./schedule/notifyMealLaunch");
 
 if (process.env.INSTANCE_VAR === "0") {
+  schedule.scheduleJob("30 7 * * 1-5", () => {
+    getWeatherAndNotify();
+  });
   // 월~금 오전 10시 30분 마다 중식 알림 보내기
   schedule.scheduleJob("30 10 * * 1-5", () => {
     notifyMealLaunch();
