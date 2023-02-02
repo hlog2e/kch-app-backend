@@ -9,6 +9,7 @@ require("./banner");
 require("./pushToken");
 require("./notice");
 require("./report");
+require("./admin");
 
 mongoose.connect(process.env.MONGO_URI, {
   auth: { authSource: "admin" },

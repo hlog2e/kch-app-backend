@@ -2,10 +2,19 @@ const jwt = require("jsonwebtoken");
 
 module.exports = {
   createAccessToken: async (_userId) => {
-    const payload = { userId: _userId };
+    const payload = { userId: _userId, idAdmin: false };
     const newToken = jwt.sign(payload, process.env.JWT_SECRET, {
       algorithm: "HS256",
       expiresIn: "1y",
+    });
+
+    return newToken;
+  },
+  createAdminAccessToken: async (_userId) => {
+    const payload = { userId: _userId, isAdmin: true };
+    const newToken = jwt.sign(payload, process.env.JWT_SECRET, {
+      algorithm: "HS256",
+      expiresIn: "10m",
     });
 
     return newToken;

@@ -4,9 +4,13 @@ const router = express.Router();
 const noticeRouter = require("./notice");
 const pushNotiRouter = require("./push-noti");
 const registerCodeRouter = require("./register-code");
+const authRouter = require("./auth");
 
-router.use("/notice", noticeRouter);
-router.use("/push-noti", pushNotiRouter);
-router.use("/register-code", registerCodeRouter);
+const { checkAdmin } = require("../../middlewares/auth");
+
+router.use("/notice", checkAdmin, noticeRouter);
+router.use("/push-noti", checkAdmin, pushNotiRouter);
+router.use("/register-code", checkAdmin, registerCodeRouter);
+router.use("/auth", authRouter);
 
 module.exports = router;
