@@ -10,7 +10,7 @@ const { checkAdmin } = require("../../middlewares/auth");
 
 router.use("/notice", checkAdmin, noticeRouter);
 router.use("/push-noti", checkAdmin, pushNotiRouter);
-router.use("/register-code", checkAdmin, registerCodeRouter);
+router.use("/register-code", registerCodeRouter);
 router.use("/auth", authRouter);
 
 module.exports = router;
