@@ -12,7 +12,12 @@ const { checkToken } = require("../middlewares/auth");
 router.get(
   "",
   checkToken,
-  [query("offset").notEmpty(), query("limit").notEmpty(), validator],
+  [
+    query("offset").notEmpty(),
+    query("limit").notEmpty(),
+    query("sort").notEmpty(),
+    validator,
+  ],
   communityController.getCommunityItems
 );
 router.post(
