@@ -11,7 +11,9 @@ const {
 
 module.exports = {
   getCommunityItems: async (req, res) => {
-    const { offset, limit, sort } = req.query;
+    const { offset, limit } = req.query;
+    const sort = req.query.sort ? req.query.sort : { createdAt: -1 }; // sort query를 지정하지 않았을 때 최신순으로 불러오기
+
     const userId = req.userId;
 
     //차단한 유저 리스트 쿼리
