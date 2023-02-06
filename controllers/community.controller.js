@@ -14,8 +14,6 @@ module.exports = {
     const { offset, limit, sort } = req.query;
     const userId = req.userId;
 
-    console.log(sort);
-
     //차단한 유저 리스트 쿼리
     const { blocked_users } = await User.findOne({ _id: userId });
 
