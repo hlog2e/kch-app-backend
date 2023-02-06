@@ -11,42 +11,28 @@ const {
 
 module.exports = {
   getCommunityItems: async (req, res) => {
-    const { offset, limit } = req.query;
+    const { offset, limit, sort } = req.query;
     const userId = req.userId;
+
+    console.log(sort);
 
     //차단한 유저 리스트 쿼리
     const { blocked_users } = await User.findOne({ _id: userId });
 
-    const beforeSort = await Communities.find({
+    const data = await Communities.find({
       status: "normal",
       publisher: { $nin: blocked_users }, //차단한 유저의 게시물은 제외 후 쿼리
     })
       .limit(limit)
       .skip(offset)
-      .sort({ createdAt: -1 });
+      .sort(sort);
 
     const totalCount = await Communities.count({});
-
-    const afterSort = beforeSort.map((_item) => {
-      return {
-        _id: _item._id,
-        title: _item.title,
-        content: _item.content,
-        likes: _item.likes,
-        likeCount: _item.likes.length,
-        comments: _item.comments,
-        commentCount: _item.comments.length,
-        views: _item.views,
-        images: _item.images,
-        publisher: _item.publisher,
-        createdAt: _item.createdAt,
-      };
-    });
 
     res.json({
       status: 200,
       message: "정상 처리 되었습니다.",
-      communities: afterSort,
+      communities: data,
       totalCount: totalCount,
       nextCursor: Number(offset) + Number(limit),
     });
@@ -98,18 +84,7 @@ module.exports = {
       { $inc: { views: 1 } },
       { upsert: true }
     );
-    res.json({
-      _id: data._id,
-      title: data.title,
-      content: data.content,
-      likes: data.likes,
-      likeCount: data.likes.length,
-      comments: data.comments,
-      commentCount: data.comments.length,
-      images: data.images,
-      publisher: data.publisher,
-      createdAt: data.createdAt,
-    });
+    res.json(data);
   },
   getCommunitiesWrittenByUser: async (req, res) => {
     const userId = req.userId;
@@ -136,6 +111,7 @@ module.exports = {
             createdAt: moment(),
           },
         },
+        $inc: { commentCount: 1 },
       }
     );
 
@@ -176,7 +152,7 @@ module.exports = {
     //TODO: 댓글 삭제전 자기가 쓴 댓글인지 판별해주는 로직 추가 필요
     const result = await Communities.update(
       { _id: communityId },
-      { $pull: { comments: { _id: commentId } } }
+      { $pull: { comments: { _id: commentId } }, $inc: { commentCount: -1 } }
     );
 
     res.json({ status: 200, message: "정상 처리되었습니다." });
@@ -188,7 +164,7 @@ module.exports = {
 
     await Communities.update(
       { _id: communityId },
-      { $push: { likes: userId } }
+      { $push: { likes: userId }, $inc: { likeCount: 1 } }
     );
 
     res.json({ status: 200, message: "정상 처리되었습니다." });
@@ -200,7 +176,7 @@ module.exports = {
 
     await Communities.update(
       { _id: communityId },
-      { $pull: { likes: userId } }
+      { $pull: { likes: userId }, $inc: { likeCount: -1 } }
     );
 
     res.json({ status: 200, message: "정상 처리되었습니다." });
