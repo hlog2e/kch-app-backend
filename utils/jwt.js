@@ -14,7 +14,7 @@ module.exports = {
     const payload = { userId: _userId, isAdmin: true };
     const newToken = jwt.sign(payload, process.env.JWT_SECRET, {
       algorithm: "HS256",
-      expiresIn: "10m",
+      expiresIn: "30m",
     });
 
     return newToken;
