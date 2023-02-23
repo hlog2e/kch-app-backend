@@ -5,7 +5,7 @@ module.exports = {
     const users = await User.find({
       grade: req.query.grade,
       class: req.query.class,
-    });
+    }).sort({ number: 1 });
 
     res.json(users);
   },
