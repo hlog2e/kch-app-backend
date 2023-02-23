@@ -12,6 +12,13 @@ router.get(
   [query("isUsed").notEmpty(), validator],
   registerCodeController.getRegisterCodes
 );
+
+router.delete(
+  "/",
+  [body("code").notEmpty(), validator],
+  registerCodeController.deleteUnUsedRegisterCode
+);
+
 router.post(
   "/many",
   [body("amount").notEmpty(), validator],
