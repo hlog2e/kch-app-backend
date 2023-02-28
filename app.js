@@ -23,8 +23,8 @@ if (process.env.INSTANCE_VAR === "0") {
   schedule.scheduleJob("30 10 * * 1-5", () => {
     notifyMealLaunch();
   });
-  // 매월 23 일 마다 급식 정보를 서버로 캐싱
-  schedule.scheduleJob("0 0 23 * *", () => {
+  // 매월 1일 오전 2시 마다 급식 정보를 서버로 캐싱
+  schedule.scheduleJob("0 2 1 * *", () => {
     getMeals();
   });
 }
