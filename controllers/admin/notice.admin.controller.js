@@ -4,6 +4,10 @@ const PushToken = require("../../models/pushToken");
 const { sendNotification } = require("../../utils/expo-notifications");
 
 module.exports = {
+  getNotices: async (req, res) => {
+    const data = await Notice.find().sort({ _id: -1 });
+    res.json(data);
+  },
   sendNoticeAndPushNotificationToEveryone: async (req, res) => {
     const { title, content, writer } = req.body;
 

@@ -5,8 +5,9 @@ const noticeController = require("../../controllers/admin/notice.admin.controlle
 const { validator } = require("../../middlewares/exporess-validator");
 const { body } = require("express-validator");
 
+router.get("/", noticeController.getNotices);
 router.post(
-  "/everyone",
+  "/",
   [
     body("title").notEmpty(),
     body("content").notEmpty(),
