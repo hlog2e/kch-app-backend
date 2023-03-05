@@ -80,4 +80,11 @@ module.exports = {
       });
     }
   },
+  resetBlockUserList: async (req, res) => {
+    const userId = req.userId;
+
+    await User.updateOne({ _id: userId }, { $set: { blocked_users: [] } });
+
+    res.json({ status: 200, message: "정상적으로 초기화 되었습니다." });
+  },
 };

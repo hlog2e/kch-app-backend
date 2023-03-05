@@ -48,4 +48,10 @@ router.post(
   userController.postUpdateNotificationSetting
 );
 
+router.post(
+  "/reset-block-users",
+  checkToken,
+  userController.resetBlockUserList
+);
+
 module.exports = router;
