@@ -29,11 +29,6 @@ if (process.env.INSTANCE_VAR === "0") {
   });
 }
 
-//For Uptime Checker
-app.get("/", (req, res) => {
-  res.json({ status: 200, message: "Welcome" });
-});
-
 // CORS
 const whitelist = ["http://localhost:3000"];
 const corsOptions = {
@@ -51,13 +46,32 @@ app.use(cors(corsOptions));
 
 //express init
 app.use(express.json());
-app.use(morgan("combined"));
+const moment = require("moment");
+morgan.token("auth-token", (req, res) => {
+  return JSON.stringify(req.headers.authorization);
+});
+morgan.token("ko-datetime", (req, res) => {
+  return moment().format("YYYY-MM-DD hh:mm:ss A Z");
+});
+morgan.token("req-body", (req, res) => {
+  return JSON.stringify(req.body);
+});
+
+app.use(
+  morgan(
+    '[:method|HTTP/:http-version|":url"|:status] [IP : :remote-addr] [:ko-datetime] [Agent:":user-agent"] [Authorization: :auth-token] [Body: :req-body] [res-length::res[content-length] referrer:":referrer"]'
+  )
+);
 app.use(helmet());
 app.use(cookieParser());
 app.set("trust proxy", "127.0.0.1");
 
 const mainRouter = require("./routers");
-const { sendNotificationByCategory } = require("./utils/expo-notifications");
+
+//For Uptime Checker
+app.get("/", (req, res) => {
+  res.json({ status: 200, message: "Welcome" });
+});
 app.use(mainRouter);
 
 //에러 핸들링
