@@ -51,7 +51,7 @@ morgan.token("auth-token", (req, res) => {
   return JSON.stringify(req.headers.authorization);
 });
 morgan.token("ko-datetime", (req, res) => {
-  return moment().format("YYYY-MM-DD hh:mm:ss A Z");
+  return moment().format("YYYY-MM-DD hh:mm:ss.SSS A Z");
 });
 morgan.token("req-body", (req, res) => {
   return JSON.stringify(req.body);
@@ -59,7 +59,7 @@ morgan.token("req-body", (req, res) => {
 
 app.use(
   morgan(
-    '[:method|HTTP/:http-version|":url"|:status] [IP : :remote-addr] [:ko-datetime] [Agent:":user-agent"] [Authorization: :auth-token] [Body: :req-body] [res-length::res[content-length] referrer:":referrer"]'
+    '[IP : :remote-addr] [:ko-datetime] [:method|HTTP/:http-version|":url"|:status] [Agent:":user-agent"] [Authorization: :auth-token] [Body: :req-body] [res-length::res[content-length] referrer:":referrer"]'
   )
 );
 app.use(helmet());
