@@ -48,11 +48,15 @@ module.exports = {
       });
     }
 
+    const userData = await User.findOne({ _id: userId });
+
     await Communities.create({
       title: title,
       content: content,
       images: uploadedImageUrls,
       publisher: userId,
+      publisherName: userData.name,
+      publisherGrade: userData.grade,
       status: "normal",
     });
 
@@ -100,6 +104,8 @@ module.exports = {
     const { communityId, comment } = req.body;
     const userId = req.userId;
 
+    const userData = await User.findOne({ _id: userId });
+
     await Communities.update(
       { _id: communityId },
       {
@@ -107,6 +113,8 @@ module.exports = {
           comments: {
             _id: uuid.v4(),
             issuer: userId,
+            issuerName: userData.name,
+            issuerGrade: userData.grade,
             comment: comment,
             createdAt: moment(),
           },

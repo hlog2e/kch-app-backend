@@ -12,6 +12,8 @@ const communitySchema = new mongoose.Schema(
     views: { type: Number },
     images: [],
     publisher: { type: String },
+    publisherName: { type: String },
+    publisherGrade: { type: String },
   },
   { timestamps: true, versionKey: false }
 );
