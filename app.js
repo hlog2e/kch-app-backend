@@ -19,8 +19,8 @@ if (process.env.INSTANCE_VAR === "0") {
   schedule.scheduleJob("30 7 * * 1-5", () => {
     getWeatherAndNotify();
   });
-  // 월~금 오전 10시 30분 마다 중식 알림 보내기
-  schedule.scheduleJob("30 10 * * 1-5", () => {
+  // 월~금 오전 08시 00분 마다 중식 알림 보내기
+  schedule.scheduleJob("00 08 * * 1-5", () => {
     notifyMealLaunch();
   });
   // 매월 1일 오전 2시 마다 급식 정보를 서버로 캐싱
