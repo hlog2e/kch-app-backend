@@ -6,6 +6,8 @@ const { query } = require("express-validator");
 
 const userController = require("../../controllers/admin/user.admin.controller");
 
+router.get("/count", userController.getCount);
+
 router.get("/gradeAndClass", [
   query("grade").notEmpty(),
   query("class").notEmpty(),
