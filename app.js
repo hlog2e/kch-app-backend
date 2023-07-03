@@ -27,6 +27,10 @@ if (process.env.INSTANCE_VAR === "0") {
   schedule.scheduleJob("0 2 1 * *", () => {
     getMeals();
   });
+  // 1일에 급식 데이터 못불러왔을때 3일 오후 12시에 다시 불러옴
+  schedule.scheduleJob("0 12 3 * *", () => {
+    getMeals();
+  });
 }
 
 // CORS
