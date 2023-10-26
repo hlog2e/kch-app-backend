@@ -1,0 +1,11 @@
+version: "3.8"
+
+services:
+  kch-dev-mongo:
+    image: mongo
+    restart: always
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: test
+      MONGO_INITDB_ROOT_PASSWORD: test@1234
+    ports:
+      - "27017:27017"
