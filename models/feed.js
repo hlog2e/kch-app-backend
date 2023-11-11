@@ -3,7 +3,7 @@ const mongoose = require("mongoose");
 const feedSchema = new mongoose.Schema(
   {
     publisher: { type: Object },
-    desc: { type: String },
+    content: { type: String },
     images: [],
   },
   { timestamps: true, versionKey: false }

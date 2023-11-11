@@ -1,159 +1,177 @@
-const { sendSMS, createCode, validateCode } = require("../utils/sms");
-const RegisterCode = require("../models/registerCode");
+const { sendCode } = require("../utils/sms");
+const VerifyCode = require("../models/verifyCode");
+const moment = require("moment");
 const User = require("../models/user");
 const { createAccessToken } = require("../utils/jwt");
 
 module.exports = {
-  login: async (req, res) => {
-    const phoneNumber = req.body.phoneNumber;
-    const code = req.body.code;
+  requestCode: async (req, res) => {
+    const { phoneNumber } = req.body;
+    const code = await sendCode(phoneNumber);
 
-    // 플레이 스토어 및 앱 심사시 테스트 계정은 통과 ----------------
-    let validated;
-    if (phoneNumber === "01000000000" && code === "5231") {
-      validated = true;
-    } else {
-      validated = await validateCode(phoneNumber, code);
-    }
-    // --------------------------------------------------
+    await VerifyCode.updateOne(
+      { _id: phoneNumber },
+      { code: code, isUsed: false, expire: moment().add(10, "minutes") },
+      { upsert: true }
+    );
 
-    //const validated = await validateCode(phoneNumber, code);
+    res.json({ status: 200, message: "인증번호를 발송 했습니다." });
+  },
 
-    if (!validated) {
+  verifyCodeAndLogin: async (req, res) => {
+    const { phoneNumber, code } = req.body;
+
+    const codeData = await VerifyCode.findOne({
+      _id: phoneNumber,
+      code: code,
+      isUsed: false,
+      expire: { $gt: moment() },
+    });
+
+    if (!codeData) {
       return res
-        .status(500)
-        .json({ status: 500, message: "인증번호가 유효하지 않습니다." });
+        .status(400)
+        .json({ status: 400, message: "인증번호가 유효하지 않습니다." });
     }
 
-    const user = await User.findOne({ phone_number: phoneNumber });
+    await VerifyCode.updateOne({ _id: phoneNumber }, { isUsed: true });
 
-    const accessToken = await createAccessToken(user._id);
+    const userData = await User.findOne({ phoneNumber: phoneNumber });
+    if (!userData) {
+      return res.json({
+        status: 200,
+        message: "인증되었습니다.",
+        user: null,
+        token: null,
+      });
+    }
 
-    res.status(200).json({
+    const accessToken = await createAccessToken(userData._id);
+    return res.json({
       status: 200,
-      message: "정상 처리 되었습니다.",
-      user: user,
+      message: "인증되었습니다.",
+      user: userData,
       token: accessToken,
     });
   },
   join: async (req, res) => {
-    //가입코드 유효성 확인 및 사용함으로 변경
-    const foundRegisterCode = await RegisterCode.findOne({
-      _id: req.body.registerCode,
-      isUsed: false,
-    });
-    if (!foundRegisterCode) {
-      return res.status(400).json({
-        status: 400,
-        message: "유효하지 않은 가입코드입니다.",
-        isValidate: false,
-      });
-    }
+    const { phoneNumber, code, type, name } = req.body; //가입시 필수 데이터
+    let doneUserData;
 
-    //회원 정보 DB 저장 및 가입 확인 코드 사용함으로 변경.
-    try {
-      const newUser = await User.create({
-        phone_number: req.body.phoneNumber,
-        name: req.body.name,
-        grade: req.body.grade,
-        class: req.body.class,
-        number: req.body.number,
-        agreement: true,
-        blocked_users: [],
-      });
+    console.log(phoneNumber);
 
-      await RegisterCode.updateOne(
-        { _id: req.body.registerCode },
-        { isUsed: true, usedUser: newUser }
-      );
-
-      const accessToken = await createAccessToken(newUser._id);
-      return res.status(200).json({
-        status: 200,
-        message: "회원가입이 정상적으로 완료되었습니다.",
-        user: newUser,
-        token: accessToken,
-      });
-    } catch (err) {
-      console.log(err);
+    const userExists = await User.findOne({ phoneNumber: phoneNumber });
+    if (userExists) {
       return res
-        .status(500)
-        .json({ status: 500, message: "회원가입 도중 오류가 발생하였습니다." });
+        .status(400)
+        .json({ status: 400, message: "이미 가입된 회원입니다." });
     }
-  },
-  requestCode: async (req, res) => {
-    const phoneNumber = req.body.phoneNumber;
-    const type = req.body.type;
 
-    const alreadyJoinedUser = await User.findOne({
-      phone_number: phoneNumber,
+    // -------- 인증 코드 검증 로직 --------
+    const codeData = await VerifyCode.findOne({
+      _id: phoneNumber,
+      code: code,
+      expire: { $gt: moment() },
     });
-    if (type === "join" && alreadyJoinedUser) {
+
+    if (!codeData) {
       return res.status(400).json({
         status: 400,
-        message: "이미 가입한 회원입니다. 로그인 해주세요!",
-      });
-    }
-    if (type === "login" && !alreadyJoinedUser) {
-      return res.status(400).json({
-        status: 400,
-        message: "가입되지 않은 회원입니다. 가입 후 이용해 주세요!",
-      });
-    }
-    const code = await createCode(phoneNumber);
-
-    await sendSMS(phoneNumber, `[금천고등학교] 인증번호는 [${code}]입니다.`);
-    res
-      .status(200)
-      .json({ status: 200, message: "인증코드가 발송되었습니다." });
-  },
-  validateCode: async (req, res) => {
-    const phoneNumber = req.body.phoneNumber;
-    const code = req.body.code;
-
-    // 플레이 스토어 및 앱 심사시 테스트 가입 ----------------
-    let validated;
-    if (phoneNumber === "01011111111" && code === "5231") {
-      validated = true;
-    } else {
-      validated = await validateCode(phoneNumber, code);
-    }
-    // --------------------------------------------------
-
-    //const validated = await validateCode(phoneNumber, code);
-
-    if (validated) {
-      return res.status(200).json({
-        status: 200,
-        message: "유효한 인증번호 입니다.",
-        isValidate: true,
-      });
-    } else {
-      return res.status(200).json({
-        status: 200,
-        message: "유효하지 않은 인증번호 입니다.",
-        isValidate: false,
-      });
-    }
-  },
-  validateRegisterCode: async (req, res) => {
-    const registerCode = req.body.registerCode;
-    const foundRegisterCode = await RegisterCode.findOne({
-      _id: registerCode,
-      isUsed: false,
-    });
-    if (!foundRegisterCode) {
-      return res.status(200).json({
-        status: 200,
-        message: "유효하지 않은 가입코드입니다.",
-        isValidate: false,
+        message: "인증코드가 만료되었습니다. 처음부터 다시 시도해주세요 :(",
       });
     }
 
-    res.status(200).json({
+    // -------- type 따른 가입 로직 분류 --------
+    switch (type) {
+      // -------- 재학생 --------
+      case "undergraduate":
+        if (req.body.hiddenCode) {
+          if (process.env.HIDDEN_CODE === req.body.hiddenCode) {
+            console.log("1");
+            doneUserData = await User.create({
+              phoneNumber: phoneNumber,
+              name: name,
+              desc: "학생",
+              type: type,
+              birthYear: req.body.birthYear,
+              barcode: null,
+            });
+          } else {
+            return res.status(400).json({
+              status: 400,
+              message: "가입코드가 올바르지 않습니다.",
+            });
+          }
+          break;
+        }
+
+        if (!req.body.birthYear || !req.body.barcode) {
+          return res.status(400).json({
+            status: 400,
+            message: "가입에 필요한 필수 정보가 누락되었습니다.",
+          });
+        }
+
+        const barcodeExists = await User.findOne({ barcode: req.body.barcode });
+        if (barcodeExists) {
+          return res
+            .status(400)
+            .json({ status: 400, message: "이미 사용된 학생증 입니다!" });
+        }
+
+        doneUserData = await User.create({
+          phoneNumber: phoneNumber,
+          name: name,
+          desc: "학생",
+          type: type,
+          birthYear: req.body.birthYear,
+          barcode: req.body.barcode,
+        });
+        break;
+
+      // -------- 졸업생 --------
+      case "graduate":
+        doneUserData = await User.create({
+          phoneNumber: phoneNumber,
+          name: name,
+          desc: "졸업생",
+          type: type,
+        });
+        break;
+
+      // -------- 선생님 --------
+      case "teacher":
+        if (process.env.TEACHER_CODE !== req.body.teacherCode) {
+          return res.status(400).json({
+            status: 400,
+            message: "선생님 가입코드가 올바르지 않습니다.",
+          });
+        }
+
+        doneUserData = await User.create({
+          phoneNumber: phoneNumber,
+          name: name,
+          desc: "선생님",
+          type: type,
+        });
+        break;
+      // -------- 부모님/외부인 --------
+      case "parents/outsider":
+        doneUserData = await User.create({
+          phoneNumber: phoneNumber,
+          name: name,
+          desc: "학부모/외부인",
+          type: type,
+        });
+        break;
+    }
+
+    const accessToken = await createAccessToken(doneUserData._id);
+    res.json({
       status: 200,
-      message: "유효한 가입코드입니다.",
-      isValidate: true,
+      message: "정상적으로 가입되었습니다.",
+      user: doneUserData,
+      token: accessToken,
     });
   },
 };

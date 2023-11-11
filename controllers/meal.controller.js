@@ -11,6 +11,6 @@ module.exports = {
 
     res
       .status(200)
-      .json({ status: 200, message: "정상 처리되었습니다.", data: queryData });
+      .json({ status: 200, message: "정상 처리되었습니다.", meals: queryData });
   },
 };

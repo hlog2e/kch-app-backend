@@ -7,7 +7,7 @@ const { validator } = require("../middlewares/exporess-validator");
 const { query, body } = require("express-validator");
 
 const uploader = require("../middlewares/multer");
-const { checkToken } = require("../middlewares/auth");
+const { checkToken } = require("../middlewares/auth");
 
 router.get(
   "",
@@ -35,7 +35,7 @@ router.get(
   communityController.getCommunitiesWrittenByUser
 );
 
-router.get("/blocked_users", checkToken, communityController.getBlockedUsers);
+router.get("/blockedUsers", checkToken, communityController.getBlockedUsers);
 router.post(
   "/block_user",
   checkToken,
@@ -87,6 +87,12 @@ router.delete(
   [body("communityId").notEmpty(), validator],
   checkToken,
   communityController.deleteCommunity
+);
+
+router.post(
+  "/checkBadWord",
+  [body("text").notEmpty(), validator],
+  communityController.checkBadWord
 );
 
 module.exports = router;

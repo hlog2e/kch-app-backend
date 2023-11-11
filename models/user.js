@@ -2,7 +2,7 @@ const mongoose = require("mongoose");
 
 const userSchema = new mongoose.Schema(
   {
-    phone_number: {
+    phoneNumber: {
       type: String,
       required: true,
       unique: true,
@@ -10,14 +10,20 @@ const userSchema = new mongoose.Schema(
       maxlength: 11,
     },
     name: { type: String, required: true },
-    grade: { type: String, required: true },
-    class: { type: String },
-    number: { type: String },
-    agreement: { type: Boolean },
-    blocked_users: [],
-    photo: { type: String },
-    barcode: { type: String },
-    notifications: { type: Array, default: ["meal", "weather", "newPost"] },
+    desc: String,
+    profilePhoto: String,
+    type: { type: String, required: true },
+    blockedUsers: [],
+    notifications: {
+      type: Array,
+      default: ["meal", "weather", "feed", "community"],
+    },
+    //아래는 재학생일 경우에만 필요한 Data
+    birthYear: String,
+    idPhoto: String,
+    barcode: String,
+    timetable: [],
+    isAdmin: { type: Boolean, default: false },
   },
   { timestamps: true, versionKey: false }
 );
