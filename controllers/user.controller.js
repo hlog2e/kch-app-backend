@@ -8,24 +8,40 @@ module.exports = {
     res.json(userData);
   },
 
-  modifyUserInfo: async (req, res) => {
+  editUserInfo: async (req, res) => {
     const userId = req.userId;
-    await User.updateOne(
-      { _id: userId },
-      { grade: req.body.grade, class: req.body.class, number: req.body.number }
-    );
+    const { name, desc } = req.body;
+    await User.updateOne({ _id: userId }, { name: name, desc: desc });
 
     res.json({ status: 200, message: "정보 수정을 완료했습니다." });
   },
 
-  registerPhoto: async (req, res) => {
+  registerProfilePhoto: async (req, res) => {
     const fileName = req.file.key;
     const userId = req.userId;
 
     await User.updateOne(
       { _id: userId },
-      { photo: "https://static.kch-app.me/" + fileName },
-      { upsert: true }
+      { profilePhoto: "https://static.kch-app.me/" + fileName }
+    );
+
+    res.json({ status: 200, message: "정상적으로 업로드 되었습니다." });
+  },
+
+  deleteProfilePhoto: async (req, res) => {
+    const userId = req.userId;
+    await User.updateOne({ _id: userId }, { $unset: { profilePhoto: 1 } });
+
+    res.json({ status: 200, message: "정상적으로 삭제되었습니다." });
+  },
+
+  registerIdPhoto: async (req, res) => {
+    const fileName = req.file.key;
+    const userId = req.userId;
+
+    await User.updateOne(
+      { _id: userId },
+      { idPhoto: "https://static.kch-app.me/" + fileName }
     );
 
     res.json({ status: 200, message: "정상적으로 업로드 되었습니다." });
@@ -83,8 +99,29 @@ module.exports = {
   resetBlockUserList: async (req, res) => {
     const userId = req.userId;
 
-    await User.updateOne({ _id: userId }, { $set: { blocked_users: [] } });
+    await User.updateOne({ _id: userId }, { $set: { blockedUsers: [] } });
 
     res.json({ status: 200, message: "정상적으로 초기화 되었습니다." });
+  },
+
+  getMyTimetable: async (req, res) => {
+    const userId = req.userId;
+
+    const data = await User.findOne({ _id: userId }, "-_id timetable");
+
+    if (!data.timetable) {
+      return res.json(null);
+    }
+
+    res.json(data.timetable);
+  },
+
+  postMyTimetable: async (req, res) => {
+    const { timetable } = req.body;
+    const userId = req.userId;
+
+    await User.updateOne({ _id: userId }, { timetable: timetable });
+
+    res.json({ status: 200, message: "정상 업데이트 되었습니다." });
   },
 };

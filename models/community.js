@@ -9,11 +9,10 @@ const communitySchema = new mongoose.Schema(
     likeCount: { type: Number, default: 0 },
     comments: [],
     commentCount: { type: Number, default: 0 },
-    views: { type: Number },
+    views: [],
     images: [],
     publisher: { type: String },
-    publisherName: { type: String },
-    publisherGrade: { type: String },
+    reports: [],
   },
   { timestamps: true, versionKey: false }
 );

@@ -9,11 +9,12 @@ const schedule = require("node-schedule");
 
 //Mongo DB
 require("./models");
-require("./models/redis");
 
 const getMeals = require("./schedule/getMeals"); // 1개월 단위로 급식데이터 불러오기 위한 스케줄 함수
 const getWeatherAndNotify = require("./schedule/getWeatherAndNotify");
 const notifyMealLaunch = require("./schedule/notifyMealLaunch");
+const getPhotosFromHomepage = require("./schedule/getPhotosFromHomepage");
+const getNoticesFromHomepage = require("./schedule/getNoticesFromHomepage");
 
 if (process.env.INSTANCE_VAR === "0") {
   schedule.scheduleJob("30 7 * * 1-5", () => {
@@ -30,6 +31,14 @@ if (process.env.INSTANCE_VAR === "0") {
   // 1일에 급식 데이터 못불러왔을때 3일 오후 12시에 다시 불러옴
   schedule.scheduleJob("0 12 3 * *", () => {
     getMeals();
+  });
+  // 30분 마다 학교 활동사진 업데이트
+  schedule.scheduleJob("0,30 * * * *", () => {
+    getPhotosFromHomepage();
+  });
+  //10,40분 마다 학교 공지사항 업데이트
+  schedule.scheduleJob("10,40 * * * *", () => {
+    getNoticesFromHomepage();
   });
 }
 

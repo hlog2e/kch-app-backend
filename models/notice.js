@@ -2,11 +2,14 @@ const mongoose = require("mongoose");
 
 const noticeSchema = new mongoose.Schema(
   {
+    _id: { type: Number },
     title: { type: String },
-    content: { type: String },
-    writer: { type: String },
+    url: { type: String },
+    teacher: { type: String },
+    html: { type: String },
+    createdAt: { type: Date },
   },
-  { timestamps: true, versionKey: false }
+  { timestamps: false, versionKey: false }
 );
 //noticeSchema.index({ _id: 1 });
 

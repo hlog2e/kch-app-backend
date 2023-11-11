@@ -1,6 +1,5 @@
 const Communities = require("../models/community");
 const User = require("../models/user");
-const Report = require("../models/report");
 const PushToken = require("../models/pushToken");
 const uuid = require("uuid");
 const moment = require("moment");
@@ -12,20 +11,19 @@ const {
 module.exports = {
   getCommunityItems: async (req, res) => {
     const { offset, limit } = req.query;
-    const sort = req.query.sort ? req.query.sort : { createdAt: -1 }; // sort query를 지정하지 않았을 때 최신순으로 불러오기
 
     const userId = req.userId;
 
     //차단한 유저 리스트 쿼리
-    const { blocked_users } = await User.findOne({ _id: userId });
+    const { blockedUsers } = await User.findOne({ _id: userId });
 
     const data = await Communities.find({
       status: "normal",
-      publisher: { $nin: blocked_users }, //차단한 유저의 게시물은 제외 후 쿼리
+      publisher: { $nin: blockedUsers }, //차단한 유저의 게시물은 제외 후 쿼리
     })
       .limit(limit)
       .skip(offset)
-      .sort(sort);
+      .sort({ createdAt: -1 });
 
     const totalCount = await Communities.count({});
 
@@ -48,20 +46,16 @@ module.exports = {
       });
     }
 
-    const userData = await User.findOne({ _id: userId });
-
     await Communities.create({
       title: title,
       content: content,
       images: uploadedImageUrls,
       publisher: userId,
-      publisherName: userData.name,
-      publisherGrade: userData.grade,
       status: "normal",
     });
 
     await sendNotificationByCategory(
-      "newPost",
+      "community",
       "커뮤니티에 새로운 글이 올라왔어요!",
       title + "\n\n※ 알림 끄기는 더보기 > 알림설정",
       "kch://community",
@@ -75,6 +69,7 @@ module.exports = {
   },
   getCommunityDetail: async (req, res) => {
     const { id } = req.query;
+    const userId = req.userId;
     const data = await Communities.findOne({ _id: id, status: "normal" });
 
     if (!data) {
@@ -83,11 +78,7 @@ module.exports = {
         .json({ status: 404, message: "존재하지 않는 게시글 입니다." });
     }
 
-    await Communities.updateOne(
-      { _id: id },
-      { $inc: { views: 1 } },
-      { upsert: true }
-    );
+    await Communities.updateOne({ _id: id }, { $addToSet: { views: userId } });
     res.json(data);
   },
   getCommunitiesWrittenByUser: async (req, res) => {
@@ -104,8 +95,6 @@ module.exports = {
     const { communityId, comment } = req.body;
     const userId = req.userId;
 
-    const userData = await User.findOne({ _id: userId });
-
     await Communities.update(
       { _id: communityId },
       {
@@ -113,8 +102,6 @@ module.exports = {
           comments: {
             _id: uuid.v4(),
             issuer: userId,
-            issuerName: userData.name,
-            issuerGrade: userData.grade,
             comment: comment,
             createdAt: moment(),
           },
@@ -157,13 +144,35 @@ module.exports = {
     const { communityId, commentId } = req.body;
     const userId = req.userId;
 
-    //TODO: 댓글 삭제전 자기가 쓴 댓글인지 판별해주는 로직 추가 필요
-    const result = await Communities.update(
-      { _id: communityId },
-      { $pull: { comments: { _id: commentId } }, $inc: { commentCount: -1 } }
+    const { comments } = await Communities.findOne(
+      {
+        _id: communityId,
+        "comments._id": commentId,
+      },
+      "comments.$"
     );
 
-    res.json({ status: 200, message: "정상 처리되었습니다." });
+    const commentIssuer = comments[0].issuer;
+
+    if (commentIssuer === userId) {
+      await Communities.updateOne(
+        { _id: communityId },
+        { $pull: { comments: { _id: commentId } }, $inc: { commentCount: -1 } }
+      );
+      return res.json({ status: 200, message: "정상 처리되었습니다." });
+    }
+
+    const user = await User.findOne({ _id: userId }, ["isAdmin"]);
+
+    if (user.isAdmin) {
+      await Communities.updateOne(
+        { _id: communityId },
+        { $pull: { comments: { _id: commentId } }, $inc: { commentCount: -1 } }
+      );
+      return res.json({ status: 200, message: "정상 처리되었습니다." });
+    }
+
+    res.json({ status: 401, message: "권한이 없습니다." });
   },
 
   addLike: async (req, res) => {
@@ -197,7 +206,16 @@ module.exports = {
     const community = await Communities.findOne({ _id: communityId });
 
     if (community.publisher === userId) {
-      await Communities.update({ _id: communityId }, { status: "deleted" });
+      await Communities.updateOne({ _id: communityId }, { status: "deleted" });
+      return res.json({ status: 200, message: "정상 처리되었습니다." });
+    }
+
+    const user = await User.findOne({ _id: userId }, ["isAdmin"]);
+    if (user.isAdmin) {
+      await Communities.updateOne(
+        { _id: communityId },
+        { status: "deletedByAdmin" }
+      );
       return res.json({ status: 200, message: "정상 처리되었습니다." });
     }
     res.status(403).json({ status: 403, message: "권한이 없습니다." });
@@ -205,10 +223,9 @@ module.exports = {
 
   getBlockedUsers: async (req, res) => {
     const userId = req.userId;
+    const { blockedUsers } = await User.findOne({ _id: userId });
 
-    const { blocked_users } = await User.findOne({ _id: userId });
-
-    res.json(blocked_users);
+    res.json(blockedUsers);
   },
 
   postBlockUser: async (req, res) => {
@@ -217,7 +234,7 @@ module.exports = {
 
     await User.updateOne(
       { _id: userId },
-      { $addToSet: { blocked_users: blockUserId } }
+      { $addToSet: { blockedUsers: blockUserId } }
     );
 
     res.json({ status: 200, message: `유저 ${blockUserId}를 차단하였습니다.` });
@@ -227,12 +244,10 @@ module.exports = {
     const userId = req.userId;
     const { postId } = req.body;
 
-    await Report.create({
-      type: "post",
-      post_id: postId,
-      issuer: userId,
-      status: "open",
-    });
+    await Communities.updateOne(
+      { _id: postId },
+      { $addToSet: { reports: userId } }
+    );
 
     res.json({ status: 200, message: "정상적으로 신고처리 되었습니다." });
   },
@@ -241,17 +256,27 @@ module.exports = {
     const userId = req.userId;
     const { postId, commentId } = req.body;
 
-    await Report.create({
-      type: "comment",
-      post_id: postId,
-      comment_id: commentId,
-      issuer: userId,
-      status: "open",
-    });
+    const test = await Communities.updateOne(
+      {
+        _id: postId,
+        "comments._id": commentId,
+      },
+      { $addToSet: { "comments.$.reports": userId } }
+    );
+
+    console.log(test);
 
     res.json({
       status: 200,
       message: "정상적으로 해당 댓글이 신고처리 되었습니다.",
     });
+  },
+
+  checkBadWord: async (req, res) => {
+    const { text } = req.body;
+
+    const result = await checkBadWordByGPT(text);
+
+    res.send(result);
   },
 };
