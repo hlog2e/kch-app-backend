@@ -21,6 +21,18 @@ module.exports = {
   verifyCodeAndLogin: async (req, res) => {
     const { phoneNumber, code } = req.body;
 
+    // -------------- 심사용 계정 Bypass --------------
+    if (phoneNumber === "01012345678" && code === "5231") {
+      const userData = await User.findOne({ phoneNumber: phoneNumber });
+      return res.json({
+        status: 200,
+        message: "인증되었습니다.",
+        user: userData,
+        token: accessToken,
+      });
+    }
+    // -------------- 심사용 계정 Bypass --------------
+
     const codeData = await VerifyCode.findOne({
       _id: phoneNumber,
       code: code,
