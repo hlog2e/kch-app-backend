@@ -108,6 +108,7 @@ module.exports = {
               type: type,
               birthYear: req.body.birthYear,
               barcode: null,
+              notifications: ["meal", "weather", "feed", "community"],
             });
           } else {
             return res.status(400).json({
@@ -139,6 +140,7 @@ module.exports = {
           type: type,
           birthYear: req.body.birthYear,
           barcode: req.body.barcode,
+          notifications: ["meal", "weather", "feed", "community"],
         });
         break;
 

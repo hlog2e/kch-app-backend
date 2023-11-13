@@ -16,7 +16,7 @@ const userSchema = new mongoose.Schema(
     blockedUsers: [],
     notifications: {
       type: Array,
-      default: ["meal", "weather", "feed", "community"],
+      default: ["meal", "weather", "feed"],
     },
     //아래는 재학생일 경우에만 필요한 Data
     birthYear: String,
