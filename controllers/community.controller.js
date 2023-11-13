@@ -256,15 +256,13 @@ module.exports = {
     const userId = req.userId;
     const { postId, commentId } = req.body;
 
-    const test = await Communities.updateOne(
+    await Communities.updateOne(
       {
         _id: postId,
         "comments._id": commentId,
       },
       { $addToSet: { "comments.$.reports": userId } }
     );
-
-    console.log(test);
 
     res.json({
       status: 200,
