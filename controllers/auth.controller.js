@@ -24,6 +24,7 @@ module.exports = {
     // -------------- 심사용 계정 Bypass --------------
     if (phoneNumber === "01012345678" && code === "5231") {
       const userData = await User.findOne({ phoneNumber: phoneNumber });
+      const accessToken = await createAccessToken(userData._id);
       return res.json({
         status: 200,
         message: "인증되었습니다.",
