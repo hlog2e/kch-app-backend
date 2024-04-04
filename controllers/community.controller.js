@@ -36,6 +36,11 @@ module.exports = {
     });
   },
   postCommunityItemWithImageUploader: async (req, res) => {
+    res.status(403).json({
+      status: 403,
+      message: "커뮤니티 기능 개선을 위해 일시 점검 중입니다.",
+    });
+
     const { title, content } = req.body;
     const userId = req.userId;
     let uploadedImageUrls = [];
