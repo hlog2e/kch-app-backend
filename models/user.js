@@ -23,6 +23,7 @@ const userSchema = new mongoose.Schema(
     idPhoto: String,
     barcode: String,
     timetable: [],
+    communityBoardFixed: [],
     isAdmin: { type: Boolean, default: false },
   },
   { timestamps: true, versionKey: false }

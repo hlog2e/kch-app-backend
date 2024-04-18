@@ -1,4 +1,4 @@
-const mongoose = require("mongoose");
+const { Schema, mongoose } = require("mongoose");
 
 const communitySchema = new mongoose.Schema(
   {
@@ -13,6 +13,7 @@ const communitySchema = new mongoose.Schema(
     images: [],
     publisher: { type: String },
     reports: [],
+    boardId: { type: Schema.Types.ObjectId },
   },
   { timestamps: true, versionKey: false }
 );

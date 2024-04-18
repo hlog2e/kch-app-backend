@@ -4,6 +4,7 @@ require("./user");
 require("./meal");
 require("./feed");
 require("./community");
+require("./communityBoard");
 require("./banner");
 require("./pushToken");
 
