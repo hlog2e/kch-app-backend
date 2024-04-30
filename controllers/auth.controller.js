@@ -189,4 +189,21 @@ module.exports = {
       token: accessToken,
     });
   },
+  verifyUndergradute: async (req, res) => {
+    const userId = req.userId;
+    const { barcdoe } = req.body;
+
+    if (req.body.hiddenCode) {
+      if (process.env.HIDDEN_CODE === req.body.hiddenCode) {
+        //TODO: 여기에 히든코드 가입자 유저 데이터 변경 로직 추가
+      } else {
+        return res.status(400).json({
+          status: 400,
+          message: "가입코드가 올바르지 않습니다.",
+        });
+      }
+    } else {
+      //TODO: 여기에 바코드 가입자 유저 데이터 변경로직 추가
+    }
+  },
 };

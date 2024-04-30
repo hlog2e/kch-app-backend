@@ -9,6 +9,23 @@ const { query, body } = require("express-validator");
 const uploader = require("../middlewares/multer");
 const { checkToken } = require("../middlewares/auth");
 
+router.get("/board", checkToken, communityController.getCommunityBoards);
+router.get(
+  "/board/fixed",
+  checkToken,
+  communityController.getCommunityBoardFixed
+);
+router.post(
+  "/board/fix",
+  checkToken,
+  communityController.postCommunityBoardFix
+);
+router.post(
+  "/board/unFix",
+  checkToken,
+  communityController.postCommunityBoardUnFix
+);
+
 router.get(
   "",
   checkToken,
@@ -52,7 +69,7 @@ router.post(
 router.post(
   "/report/comment",
   checkToken,
-  [body("postId").notEmpty(), body("commentId").notEmpty(), validator],
+  [body("commentId").notEmpty(), validator],
   communityController.postReportComment
 );
 

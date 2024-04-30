@@ -4,6 +4,7 @@ const bannerSchema = new mongoose.Schema(
   {
     uri: { type: String },
     link: { type: String },
+    location: [],
   },
   { timestamps: false, versionKey: false }
 );

@@ -1,25 +1,83 @@
 const Communities = require("../models/community");
+const CommunityBoard = require("../models/communityBoard");
+const CommunityComment = require("../models/communityComment");
 const User = require("../models/user");
 const PushToken = require("../models/pushToken");
-const uuid = require("uuid");
-const moment = require("moment");
+
 const {
   sendNotification,
   sendNotificationByCategory,
 } = require("../utils/expo-notifications");
 
 module.exports = {
-  getCommunityItems: async (req, res) => {
-    const { offset, limit } = req.query;
+  getCommunityBoards: async (req, res) => {
+    const boards = await CommunityBoard.find().sort({ _id: 1 });
 
+    res.json(boards);
+  },
+  getCommunityBoardFixed: async (req, res) => {
+    const userId = req.userId;
+    const userData = await User.findOne({ _id: userId });
+
+    res.json(userData.communityBoardFixed);
+  },
+  postCommunityBoardFix: async (req, res) => {
+    const userId = req.userId;
+    const { boardId } = req.body;
+
+    await User.updateOne(
+      { _id: userId },
+      { $push: { communityBoardFixed: boardId } }
+    );
+    res.json({ status: 200, message: "정상 처리되었습니다." });
+  },
+  postCommunityBoardUnFix: async (req, res) => {
+    const userId = req.userId;
+    const { boardId } = req.body;
+
+    await User.updateOne(
+      { _id: userId },
+      { $pull: { communityBoardFixed: boardId } }
+    );
+    res.json({ status: 200, message: "정상 처리되었습니다." });
+  },
+
+  getCommunityItems: async (req, res) => {
+    const { offset, limit, boardId } = req.query;
     const userId = req.userId;
 
-    //차단한 유저 리스트 쿼리
-    const { blockedUsers } = await User.findOne({ _id: userId });
+    //임시로 커뮤니티 기능이 업데이트 되었을 때 재시작을 유도하는 메시지를 보내는 로직
+    //TODO: 추후 삭제
+    if (!boardId) {
+      return res.json({
+        communities: [
+          {
+            _id: "temp",
+            title: "앱을 재시작 해주세요!",
+            content:
+              "커뮤니티 기능이 새롭게 업데이트되었습니다! 원활한 작동을 위해 앱을 1~2회 껐다 켜주시기 바랍니다.",
+            images: [],
+          },
+        ],
+      });
+    }
+    //임시로 커뮤니티 기능이 업데이트 되었을 때 재시작을 유도하는 메시지를 보내는 로직
+
+    const { blockedUsers, type } = await User.findOne({ _id: userId });
+    const { role } = await CommunityBoard.findOne({
+      _id: boardId,
+    });
+
+    if (!role.includes(type)) {
+      return res
+        .status(403)
+        .json({ status: 403, message: "해당 게시판 접근 권한이 없습니다." });
+    }
 
     const data = await Communities.find({
       status: "normal",
       publisher: { $nin: blockedUsers }, //차단한 유저의 게시물은 제외 후 쿼리
+      boardId: boardId,
     })
       .limit(limit)
       .skip(offset)
@@ -36,12 +94,8 @@ module.exports = {
     });
   },
   postCommunityItemWithImageUploader: async (req, res) => {
-    return res.status(403).json({
-      status: 403,
-      message: "커뮤니티 기능 개선을 위해 일시 점검 중입니다.",
-    });
-
-    const { title, content } = req.body;
+    const { title, content, boardId } = req.body;
+    const isAnonymous = req.body.isAnonymous === "true";
     const userId = req.userId;
     let uploadedImageUrls = [];
 
@@ -50,20 +104,29 @@ module.exports = {
         uploadedImageUrls.push("https://static.kch-app.me/" + key);
       });
     }
+    const userData = await User.findOne({ _id: userId });
 
-    await Communities.create({
+    const communityData = await Communities.create({
+      status: "normal",
       title: title,
       content: content,
       images: uploadedImageUrls,
       publisher: userId,
-      status: "normal",
+      publisherName: isAnonymous ? null : userData.name,
+      publisherDesc: isAnonymous ? null : userData.desc,
+      isAnonymous: isAnonymous,
+      boardId: boardId,
+    });
+
+    const boardData = await CommunityBoard.findOne({
+      _id: boardId,
     });
 
     await sendNotificationByCategory(
-      "community",
-      "커뮤니티에 새로운 글이 올라왔어요!",
-      title + "\n\n※ 알림 끄기는 더보기 > 알림설정",
-      "kch://community",
+      boardId,
+      `${boardData.name} 게시판에 새로운 글이 올라왔어요!`,
+      title,
+      "kch://community-detail-screen/" + communityData._id,
       [userId]
     );
 
@@ -75,16 +138,28 @@ module.exports = {
   getCommunityDetail: async (req, res) => {
     const { id } = req.query;
     const userId = req.userId;
-    const data = await Communities.findOne({ _id: id, status: "normal" });
+    const communityData = await Communities.findOne({
+      _id: id,
+      status: "normal",
+    });
 
-    if (!data) {
+    if (!communityData) {
       return res
         .status(404)
         .json({ status: 404, message: "존재하지 않는 게시글 입니다." });
     }
 
     await Communities.updateOne({ _id: id }, { $addToSet: { views: userId } });
-    res.json(data);
+
+    const comments = await CommunityComment.find({
+      communityId: id,
+      $or: [{ status: "normal" }, { status: "hide" }],
+    });
+
+    res.json({
+      ...communityData.toObject(),
+      comments,
+    });
   },
   getCommunitiesWrittenByUser: async (req, res) => {
     const userId = req.userId;
@@ -97,36 +172,37 @@ module.exports = {
     res.json(data);
   },
   postComment: async (req, res) => {
-    const { communityId, comment } = req.body;
+    const { communityId, comment, isAnonymous } = req.body;
+
     const userId = req.userId;
+    const userData = await User.findOne({ _id: userId });
+
+    await CommunityComment.create({
+      status: "normal",
+      communityId: communityId,
+      issuer: userId,
+      issuerName: isAnonymous ? null : userData.name,
+      issuerDesc: isAnonymous ? null : userData.desc,
+      comment: comment,
+      isAnonymous: isAnonymous,
+      reports: [],
+    });
 
     await Communities.update(
       { _id: communityId },
-      {
-        $push: {
-          comments: {
-            _id: uuid.v4(),
-            issuer: userId,
-            comment: comment,
-            createdAt: moment(),
-          },
-        },
-        $inc: { commentCount: 1 },
-      }
-    );
+      { $inc: { commentCount: 1 } }
+    ); // 댓글 수 increase
 
     // 해당부분 부터는 글 작성자에게 다른 사람이 댓글 남겼을 때 알림 전송하는 로직 --------------
     const { publisher, title } = await Communities.findOne({
       _id: communityId,
     });
-
     const pushTokens = await PushToken.find({ user_id: publisher });
     let receiverArray = [];
-
+    // TODO: 여기부분 noti 전송시 큐로 처리되도록 변경해야함.
     pushTokens.map(({ _id }) => {
       receiverArray.push(_id);
     });
-
     //댓글 작성자가 커뮤니티 글의 작성자 본인이 아닐 시 알림 전송
     if (userId !== publisher) {
       sendNotification(
@@ -137,11 +213,9 @@ module.exports = {
       );
     }
     //----------------------------------------------------------------------
-
     res.json({
       status: 200,
       message: "정상 처리되었습니다.",
-      comment: comment,
     });
   },
 
@@ -149,35 +223,16 @@ module.exports = {
     const { communityId, commentId } = req.body;
     const userId = req.userId;
 
-    const { comments } = await Communities.findOne(
-      {
-        _id: communityId,
-        "comments._id": commentId,
-      },
-      "comments.$"
+    await CommunityComment.updateOne(
+      { _id: commentId, issuer: userId },
+      { status: "deleted" }
     );
 
-    const commentIssuer = comments[0].issuer;
-
-    if (commentIssuer === userId) {
-      await Communities.updateOne(
-        { _id: communityId },
-        { $pull: { comments: { _id: commentId } }, $inc: { commentCount: -1 } }
-      );
-      return res.json({ status: 200, message: "정상 처리되었습니다." });
-    }
-
-    const user = await User.findOne({ _id: userId }, ["isAdmin"]);
-
-    if (user.isAdmin) {
-      await Communities.updateOne(
-        { _id: communityId },
-        { $pull: { comments: { _id: commentId } }, $inc: { commentCount: -1 } }
-      );
-      return res.json({ status: 200, message: "정상 처리되었습니다." });
-    }
-
-    res.json({ status: 401, message: "권한이 없습니다." });
+    await Communities.updateOne(
+      { _id: communityId },
+      { $inc: { commentCount: -1 } }
+    );
+    res.json({ status: 200, message: "정상 처리되었습니다." });
   },
 
   addLike: async (req, res) => {
@@ -254,20 +309,23 @@ module.exports = {
       { $addToSet: { reports: userId } }
     );
 
+    //TODO: 여기에 관리자에게 noti 하는 로직 추가
+
     res.json({ status: 200, message: "정상적으로 신고처리 되었습니다." });
   },
 
   postReportComment: async (req, res) => {
     const userId = req.userId;
-    const { postId, commentId } = req.body;
+    const { commentId } = req.body;
 
-    await Communities.updateOne(
+    await CommunityComment.updateOne(
       {
-        _id: postId,
-        "comments._id": commentId,
+        _id: commentId,
       },
-      { $addToSet: { "comments.$.reports": userId } }
+      { $addToSet: { reports: userId } }
     );
+
+    //TODO: 여기에 관리자에게 noti 하는 로직 추가
 
     res.json({
       status: 200,

@@ -59,6 +59,7 @@ module.exports = {
     _filter
   ) => {
     const subscribedUsers = await User.find({ notifications: _category });
+
     let subscriberIDArray = [];
     subscribedUsers.map((_data) => {
       subscriberIDArray.push(_data.id);

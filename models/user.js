@@ -13,7 +13,7 @@ const userSchema = new mongoose.Schema(
     desc: String,
     profilePhoto: String,
     type: { type: String, required: true },
-    blockedUsers: [],
+    blockedUsers: [{ type: mongoose.Schema.Types.ObjectId }],
     notifications: {
       type: Array,
       default: ["meal", "weather", "feed"],
@@ -23,7 +23,7 @@ const userSchema = new mongoose.Schema(
     idPhoto: String,
     barcode: String,
     timetable: [],
-    communityBoardFixed: [],
+    communityBoardFixed: [{ type: mongoose.Schema.Types.ObjectId }],
     isAdmin: { type: Boolean, default: false },
   },
   { timestamps: true, versionKey: false }

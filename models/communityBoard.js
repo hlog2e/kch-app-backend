@@ -3,9 +3,10 @@ const mongoose = require("mongoose");
 const communityBoardSchema = new mongoose.Schema(
   {
     name: { type: String, require: true },
+    desc: { type: String },
     iconName: { type: String, default: "newspaper-outline" },
     role: [],
-    createdBy: { type: String },
+    allowAnonymous: { type: Boolean },
   },
   { timestamps: true, versionKey: false }
 );

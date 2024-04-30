@@ -27,5 +27,11 @@ router.post(
   ],
   authController.join
 );
+router.post(
+  "/verifyUndergraduate",
+  [body("barcode").notEmpty()],
+  validator,
+  authController.verifyUndergradute
+);
 
 module.exports = router;
