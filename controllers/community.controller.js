@@ -270,14 +270,6 @@ module.exports = {
       return res.json({ status: 200, message: "정상 처리되었습니다." });
     }
 
-    const user = await User.findOne({ _id: userId }, ["isAdmin"]);
-    if (user.isAdmin) {
-      await Communities.updateOne(
-        { _id: communityId },
-        { status: "deletedByAdmin" }
-      );
-      return res.json({ status: 200, message: "정상 처리되었습니다." });
-    }
     res.status(403).json({ status: 403, message: "권한이 없습니다." });
   },
 
