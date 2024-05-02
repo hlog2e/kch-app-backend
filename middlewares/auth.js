@@ -1,4 +1,5 @@
 const { validateAccessToken } = require("../utils/jwt");
+const ObjectId = require("mongoose").Types.ObjectId;
 
 module.exports = {
   checkToken: async (req, res, next) => {
@@ -16,7 +17,7 @@ module.exports = {
         .status(401)
         .json({ status: 401, message: "해당 서비스에 접근 권한이 없습니다." });
     }
-    req.userId = payload.userId;
+    req.userId = ObjectId(payload.userId);
     next();
   },
 
@@ -41,7 +42,7 @@ module.exports = {
         .status(401)
         .json({ status: 401, message: "해당 서비스에 접근 권한이 없습니다." });
     }
-    req.userId = payload.userId;
+    req.userId = ObjectId(payload.userId);
     next();
   },
 };

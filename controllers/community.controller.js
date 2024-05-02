@@ -204,7 +204,7 @@ module.exports = {
       receiverArray.push(_id);
     });
     //댓글 작성자가 커뮤니티 글의 작성자 본인이 아닐 시 알림 전송
-    if (userId !== publisher) {
+    if (!userId.equals(publisher)) {
       sendNotification(
         receiverArray,
         `내 게시물 "${title}"에 댓글이 달렸어요!`,
@@ -265,7 +265,7 @@ module.exports = {
 
     const community = await Communities.findOne({ _id: communityId });
 
-    if (community.publisher === userId) {
+    if (community.publisher.equals(userId)) {
       await Communities.updateOne({ _id: communityId }, { status: "deleted" });
       return res.json({ status: 200, message: "정상 처리되었습니다." });
     }
