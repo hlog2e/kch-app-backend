@@ -43,52 +43,56 @@ module.exports = {
   },
 
   getCommunityItems: async (req, res) => {
-    const { offset, limit, boardId } = req.query;
+    const { offset, limit } = req.query;
     const userId = req.userId;
 
-    //임시로 커뮤니티 기능이 업데이트 되었을 때 재시작을 유도하는 메시지를 보내는 로직
-    //TODO: 추후 삭제
-    if (!boardId) {
-      return res.json({
-        communities: [
-          {
-            _id: "temp",
-            title: "앱을 재시작 해주세요!",
-            content:
-              "커뮤니티 기능이 새롭게 업데이트되었습니다! 원활한 작동을 위해 앱을 1~2회 껐다 켜주시기 바랍니다.",
-            images: [],
-          },
-        ],
-      });
-    }
-    //임시로 커뮤니티 기능이 업데이트 되었을 때 재시작을 유도하는 메시지를 보내는 로직
-
     const { blockedUsers, type } = await User.findOne({ _id: userId });
-    const { role } = await CommunityBoard.findOne({
-      _id: boardId,
-    });
+    // const { role } = await CommunityBoard.findOne({
+    //   _id: boardId,
+    // });
 
-    if (!role.includes(type)) {
-      return res
-        .status(403)
-        .json({ status: 403, message: "해당 게시판 접근 권한이 없습니다." });
-    }
+    // if (!role.includes(type)) {
+    //   return res
+    //     .status(403)
+    //     .json({ status: 403, message: "해당 게시판 접근 권한이 없습니다." });
+    // }
 
     const data = await Communities.find({
       status: "normal",
       publisher: { $nin: blockedUsers }, //차단한 유저의 게시물은 제외 후 쿼리
-      boardId: boardId,
     })
       .limit(limit)
       .skip(offset)
       .sort({ createdAt: -1 });
+
+    // v1 호환성을 위해 publisher 객체를 평면화
+    const communitiesWithFlattenedPublisher = data.map((community) => {
+      const communityObj = community.toObject();
+
+      // publisher 객체에서 name, desc 추출
+      if (
+        communityObj.publisher &&
+        typeof communityObj.publisher === "object"
+      ) {
+        communityObj.publisherName = communityObj.isAnonymous
+          ? null
+          : communityObj.publisher.name;
+        communityObj.publisherDesc = communityObj.isAnonymous
+          ? null
+          : communityObj.publisher.desc;
+        // v1에서는 publisher ObjectId만 유지
+        communityObj.publisher = communityObj.publisher._id;
+      }
+
+      return communityObj;
+    });
 
     const totalCount = await Communities.count({});
 
     res.json({
       status: 200,
       message: "정상 처리 되었습니다.",
-      communities: data,
+      communities: communitiesWithFlattenedPublisher,
       totalCount: totalCount,
       nextCursor: Number(offset) + Number(limit),
     });
@@ -112,8 +116,6 @@ module.exports = {
       content: content,
       images: uploadedImageUrls,
       publisher: userId,
-      publisherName: isAnonymous ? null : userData.name,
-      publisherDesc: isAnonymous ? null : userData.desc,
       isAnonymous: isAnonymous,
       boardId: boardId,
     });
@@ -156,9 +158,38 @@ module.exports = {
       $or: [{ status: "normal" }, { status: "hide" }],
     });
 
+    // v1 호환성을 위해 댓글의 issuer 객체도 평면화
+    const commentsWithFlattenedIssuer = comments.map((comment) => {
+      const commentObj = comment.toObject();
+
+      if (commentObj.issuer && typeof commentObj.issuer === "object") {
+        commentObj.issuerName = commentObj.isAnonymous
+          ? null
+          : commentObj.issuer.name;
+        commentObj.issuerDesc = commentObj.isAnonymous
+          ? null
+          : commentObj.issuer.desc;
+        commentObj.issuer = commentObj.issuer._id;
+      }
+
+      return commentObj;
+    });
+
+    // v1 호환성을 위해 publisher 객체를 평면화
+    const communityObj = communityData.toObject();
+    if (communityObj.publisher && typeof communityObj.publisher === "object") {
+      communityObj.publisherName = communityObj.isAnonymous
+        ? null
+        : communityObj.publisher.name;
+      communityObj.publisherDesc = communityObj.isAnonymous
+        ? null
+        : communityObj.publisher.desc;
+      communityObj.publisher = communityObj.publisher._id;
+    }
+
     res.json({
-      ...communityData.toObject(),
-      comments,
+      ...communityObj,
+      comments: commentsWithFlattenedIssuer,
     });
   },
   getCommunitiesWrittenByUser: async (req, res) => {
@@ -169,7 +200,27 @@ module.exports = {
       status: "normal",
     }).sort({ createdAt: -1 });
 
-    res.json(data);
+    // v1 호환성을 위해 publisher 객체를 평면화
+    const communitiesWithFlattenedPublisher = data.map((community) => {
+      const communityObj = community.toObject();
+
+      if (
+        communityObj.publisher &&
+        typeof communityObj.publisher === "object"
+      ) {
+        communityObj.publisherName = communityObj.isAnonymous
+          ? null
+          : communityObj.publisher.name;
+        communityObj.publisherDesc = communityObj.isAnonymous
+          ? null
+          : communityObj.publisher.desc;
+        communityObj.publisher = communityObj.publisher._id;
+      }
+
+      return communityObj;
+    });
+
+    res.json(communitiesWithFlattenedPublisher);
   },
   postComment: async (req, res) => {
     const { communityId, comment, isAnonymous } = req.body;
@@ -181,8 +232,6 @@ module.exports = {
       status: "normal",
       communityId: communityId,
       issuer: userId,
-      issuerName: isAnonymous ? null : userData.name,
-      issuerDesc: isAnonymous ? null : userData.desc,
       comment: comment,
       isAnonymous: isAnonymous,
       reports: [],
@@ -194,17 +243,23 @@ module.exports = {
     ); // 댓글 수 increase
 
     // 해당부분 부터는 글 작성자에게 다른 사람이 댓글 남겼을 때 알림 전송하는 로직 --------------
-    const { publisher, title } = await Communities.findOne({
+    const communityForNotification = await Communities.findOne({
       _id: communityId,
     });
-    const pushTokens = await PushToken.find({ user_id: publisher });
+
+    // publisher가 객체인 경우 _id만 추출
+    const publisherId =
+      communityForNotification.publisher._id ||
+      communityForNotification.publisher;
+    const { title } = communityForNotification;
+    const pushTokens = await PushToken.find({ user_id: publisherId });
     let receiverArray = [];
     // TODO: 여기부분 noti 전송시 큐로 처리되도록 변경해야함.
     pushTokens.map(({ _id }) => {
       receiverArray.push(_id);
     });
     //댓글 작성자가 커뮤니티 글의 작성자 본인이 아닐 시 알림 전송
-    if (!userId.equals(publisher)) {
+    if (!userId.equals(publisherId)) {
       sendNotification(
         receiverArray,
         `내 게시물 "${title}"에 댓글이 달렸어요!`,
@@ -265,7 +320,10 @@ module.exports = {
 
     const community = await Communities.findOne({ _id: communityId });
 
-    if (community.publisher.equals(userId)) {
+    // publisher가 객체인 경우 _id 추출
+    const publisherId = community.publisher._id || community.publisher;
+
+    if (publisherId.equals(userId)) {
       await Communities.updateOne({ _id: communityId }, { status: "deleted" });
       return res.json({ status: 200, message: "정상 처리되었습니다." });
     }

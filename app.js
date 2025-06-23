@@ -42,6 +42,8 @@ if (process.env.INSTANCE_VAR === "0") {
   });
 }
 
+getPhotosFromHomepage();
+
 // CORS
 const corsOptions = {
   origin: "*", //For All Allow
