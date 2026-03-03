@@ -108,7 +108,19 @@ module.exports = {
         uploadedImageUrls.push("https://static.kch-app.me/" + key);
       });
     }
-    const userData = await User.findOne({ _id: userId });
+
+    // boardId를 category로 매핑
+    const boardToCategoryMap = {
+      "661f63c2a8bbfc3799dcbd87": "notice", // 공지
+      "661f6919a8bbfc3799dcbd88": "general", // 일반
+      "661fa409a8bbfc3799dcbd89": "student", // 학생회
+      "662f0a6367a093a3835f51a9": "club", // 동아리
+      "662f0a9d67a093a3835f51aa": "question", // 설문
+      "662f0a9d67a093a3835f51ab": "used", // 중고거래
+    };
+
+    // boardId에 해당하는 카테고리를 찾고, 없으면 'general'로 기본 설정
+    const category = boardToCategoryMap[boardId] || "general";
 
     const communityData = await Communities.create({
       status: "normal",
@@ -118,19 +130,20 @@ module.exports = {
       publisher: userId,
       isAnonymous: isAnonymous,
       boardId: boardId,
+      category: category, // 자동 매핑된 카테고리 추가
     });
 
     const boardData = await CommunityBoard.findOne({
       _id: boardId,
     });
 
-    await sendNotificationByCategory(
-      boardId,
-      `${boardData.name} 게시판에 새로운 글이 올라왔어요!`,
-      title,
-      "kch://community-detail-screen/" + communityData._id,
-      [userId]
-    );
+    // await sendNotificationByCategory(
+    //   boardId,
+    //   `${boardData.name} 게시판에 새로운 글이 올라왔어요!`,
+    //   title,
+    //   "kch://community-detail-screen/" + communityData._id,
+    //   [userId]
+    // );
 
     res.json({
       status: 200,

@@ -66,8 +66,6 @@ module.exports = {
         });
       }
 
-      const userData = await User.findOne({ _id: userId });
-
       const communityData = await Communities.create({
         status: "normal",
         title: title,
@@ -109,15 +107,11 @@ module.exports = {
     const { id } = req.query;
     const userId = req.userId;
 
-    console.log(id);
-
     try {
       const communityData = await Communities.findOne({
         _id: id,
         status: "normal",
       });
-
-      console.log(communityData);
 
       if (!communityData) {
         return res
@@ -128,7 +122,7 @@ module.exports = {
       // 조회수 증가 (중복 방지)
       await Communities.updateOne(
         { _id: id },
-        { $addToSet: { views: userId } }
+        { $addToSet: { views: userId } },
       );
 
       const comments = await CommunityComment.find({
@@ -154,13 +148,13 @@ module.exports = {
     try {
       // 하드코딩된 카테고리 목록 (추후 DB로 관리 가능)
       const categories = [
-        { id: "top", name: "인기", description: "인기 토픽" },
-        { id: "free", name: "자유", description: "자유 주제" },
-        { id: "notice", name: "공지", description: "중요한 알림" },
-        { id: "student", name: "학생회", description: "학생회 관련 정보" },
-        { id: "club", name: "동아리", description: "동아리 활동" },
-        { id: "event", name: "중고거래", description: "중고거래 토픽" },
-        { id: "question", name: "설문", description: "설문 조사" },
+        { id: "top", name: "인기", color: "#D81B60" },
+        { id: "general", name: "일반", color: "#dbeafe" },
+        { id: "notice", name: "공지", color: "#fef3c6" },
+        { id: "student", name: "학생회", color: "#f1f5f9" },
+        { id: "club", name: "동아리", color: "#f1f5f9" },
+        { id: "used", name: "중고거래", color: "#f1f5f9" },
+        { id: "question", name: "설문", color: "#f1f5f9" },
       ];
 
       res.json({
