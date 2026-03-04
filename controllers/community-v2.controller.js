@@ -23,7 +23,49 @@ module.exports = {
         publisher: { $nin: blockedUsers }, // 차단한 유저의 게시물은 제외
       };
 
-      // 카테고리 필터링 (카테고리가 지정된 경우)
+      // "top" 카테고리: 최근 30일 인기 게시물 (종합 점수순)
+      if (category === "top") {
+        const thirtyDaysAgo = new Date();
+        thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+        queryConditions.createdAt = { $gte: thirtyDaysAgo };
+
+        const data = await Communities.aggregate([
+          { $match: queryConditions },
+          {
+            $addFields: {
+              popularityScore: {
+                $add: [
+                  { $ifNull: ["$likeCount", 0] },
+                  { $ifNull: ["$commentCount", 0] },
+                  { $size: { $ifNull: ["$views", []] } },
+                ],
+              },
+            },
+          },
+          { $sort: { popularityScore: -1, createdAt: -1 } },
+          { $skip: parseInt(offset) },
+          { $limit: parseInt(limit) },
+        ]);
+
+        // aggregate는 pre-find populate가 적용되지 않으므로 수동 populate
+        await Communities.populate(data, {
+          path: "publisher",
+          select: "name desc",
+        });
+
+        const totalCount = await Communities.countDocuments(queryConditions);
+
+        return res.json({
+          status: 200,
+          message: "정상 처리 되었습니다.",
+          communities: data,
+          totalCount,
+          nextCursor: Number(offset) + Number(limit),
+          hasMore: totalCount > Number(offset) + Number(limit),
+        });
+      }
+
+      // 일반 카테고리 필터링 (기존 로직 유지)
       if (category) {
         queryConditions.category = category;
       }
