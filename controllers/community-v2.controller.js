@@ -23,21 +23,50 @@ module.exports = {
         publisher: { $nin: blockedUsers }, // 차단한 유저의 게시물은 제외
       };
 
-      // "top" 카테고리: 최근 30일 인기 게시물 (종합 점수순)
+      // "top" 카테고리: 시간 감쇠 기반 인기 게시물
+      // 30일 이내: 순수 참여 점수 / 30일 이후: 하루당 0.1씩 감쇠
       if (category === "top") {
-        const thirtyDaysAgo = new Date();
-        thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-        queryConditions.createdAt = { $gte: thirtyDaysAgo };
+        const now = new Date();
 
         const data = await Communities.aggregate([
           { $match: queryConditions },
           {
             $addFields: {
               popularityScore: {
-                $add: [
-                  { $ifNull: ["$likeCount", 0] },
-                  { $ifNull: ["$commentCount", 0] },
-                  { $size: { $ifNull: ["$views", []] } },
+                $divide: [
+                  {
+                    $add: [
+                      { $ifNull: ["$likeCount", 0] },
+                      { $ifNull: ["$commentCount", 0] },
+                      { $size: { $ifNull: ["$views", []] } },
+                    ],
+                  },
+                  {
+                    $add: [
+                      1,
+                      {
+                        $multiply: [
+                          {
+                            $max: [
+                              0,
+                              {
+                                $subtract: [
+                                  {
+                                    $divide: [
+                                      { $subtract: [now, "$createdAt"] },
+                                      86400000, // ms → days
+                                    ],
+                                  },
+                                  30,
+                                ],
+                              },
+                            ],
+                          },
+                          0.1,
+                        ],
+                      },
+                    ],
+                  },
                 ],
               },
             },
