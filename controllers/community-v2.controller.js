@@ -148,13 +148,13 @@ module.exports = {
     try {
       // 하드코딩된 카테고리 목록 (추후 DB로 관리 가능)
       const categories = [
-        { id: "top", name: "인기", color: "#D81B60" },
-        { id: "general", name: "일반", color: "#dbeafe" },
-        { id: "notice", name: "공지", color: "#fef3c6" },
-        { id: "student", name: "학생회", color: "#f1f5f9" },
-        { id: "club", name: "동아리", color: "#f1f5f9" },
-        { id: "used", name: "중고거래", color: "#f1f5f9" },
-        { id: "question", name: "설문", color: "#f1f5f9" },
+        { id: "top", name: "인기", color: "#FECDD3" },
+        { id: "general", name: "일반", color: "#BFDBFE" },
+        { id: "notice", name: "공지", color: "#FDE68A" },
+        { id: "student", name: "학생회", color: "#C4B5FD" },
+        { id: "club", name: "동아리", color: "#A7F3D0" },
+        { id: "used", name: "중고거래", color: "#FED7AA" },
+        { id: "question", name: "설문", color: "#A5F3FC" },
       ];
 
       res.json({
