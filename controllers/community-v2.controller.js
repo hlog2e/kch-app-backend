@@ -226,6 +226,7 @@ module.exports = {
         { id: "club", name: "동아리", color: "#d1fae5" },
         { id: "used", name: "중고거래", color: "#ffedd5" },
         { id: "question", name: "설문", color: "#cffafe" },
+        { id: "alumni", name: "졸업생", color: "#e0e7ff" },
       ];
 
       res.json({
