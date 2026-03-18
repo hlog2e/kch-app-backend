@@ -16,7 +16,7 @@ const notifyMealLaunch = require("./schedule/notifyMealLaunch");
 const getPhotosFromHomepage = require("./schedule/getPhotosFromHomepage");
 const getNoticesFromHomepage = require("./schedule/getNoticesFromHomepage");
 
-if (process.env.INSTANCE_VAR === "0" || process.env.NODE_ENV !== "production") {
+if (process.env.INSTANCE_VAR === undefined || process.env.INSTANCE_VAR === "0") {
   const telegram = require("./utils/telegram");
   telegram.initialize();
 
