@@ -2,12 +2,27 @@ const express = require("express");
 const router = express.Router();
 
 const uploader = require("../middlewares/multer");
-const { checkToken } = require("../middlewares/auth");
+const { checkToken, checkAdmin } = require("../middlewares/auth");
 const { body } = require("express-validator");
 const { validator } = require("../middlewares/exporess-validator");
 const userController = require("../controllers/user.controller");
+const verifyController = require("../controllers/verify.controller");
 
 router.get("/info", checkToken, userController.getUserInfo);
+
+// -------- 인증 요청 --------
+router.post(
+  "/verify",
+  checkToken,
+  uploader.single("image"),
+  verifyController.requestVerification
+);
+router.get("/verify/status", checkToken, verifyController.getMyVerificationStatus);
+
+// -------- [관리자] 인증 관리 --------
+router.get("/verify/pending", checkAdmin, verifyController.getPendingRequests);
+router.post("/verify/:requestId/approve", checkAdmin, verifyController.approveRequest);
+router.post("/verify/:requestId/reject", checkAdmin, verifyController.rejectRequest);
 
 router.post(
   "/editProfile",

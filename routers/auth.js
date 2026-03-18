@@ -20,18 +20,10 @@ router.post(
   [
     body("phoneNumber").notEmpty(),
     body("code").notEmpty(),
-    body("type").notEmpty(),
     body("name").notEmpty(),
 
     validator,
   ],
   authController.join
 );
-router.post(
-  "/verifyUndergraduate",
-  [body("barcode").notEmpty()],
-  validator,
-  authController.verifyUndergradute
-);
-
 module.exports = router;

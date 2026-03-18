@@ -16,7 +16,10 @@ const notifyMealLaunch = require("./schedule/notifyMealLaunch");
 const getPhotosFromHomepage = require("./schedule/getPhotosFromHomepage");
 const getNoticesFromHomepage = require("./schedule/getNoticesFromHomepage");
 
-if (process.env.INSTANCE_VAR === "0") {
+if (process.env.INSTANCE_VAR === "0" || process.env.NODE_ENV !== "production") {
+  const telegram = require("./utils/telegram");
+  telegram.initialize();
+
   schedule.scheduleJob("30 7 * * 1-5", () => {
     getWeatherAndNotify();
   });
