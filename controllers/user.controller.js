@@ -96,6 +96,29 @@ module.exports = {
       });
     }
   },
+  postToggleAllCommunityNotification: async (req, res) => {
+    const userId = req.userId;
+    const { isRegister } = req.body;
+
+    if (isRegister) {
+      const categories = ["general", "notice", "student", "club", "used", "question", "alumni"];
+      const communityCategories = categories.map((id) => `community_${id}`);
+
+      await User.updateOne(
+        { _id: userId },
+        { $addToSet: { notifications: { $each: communityCategories } } }
+      );
+    } else {
+      await User.updateOne(
+        { _id: userId },
+        { $pull: { notifications: { $regex: /^community_/ } } }
+      );
+    }
+
+    const { notifications } = await User.findOne({ _id: userId });
+    res.json(notifications);
+  },
+
   resetBlockUserList: async (req, res) => {
     const userId = req.userId;
 

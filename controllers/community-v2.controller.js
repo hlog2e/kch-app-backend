@@ -147,16 +147,15 @@ module.exports = {
         category: category || "general", // 기본 카테고리 설정
       });
 
-      // v2에서는 카테고리 기반 알림 (boardId 사용 안 함)
+      // v2에서는 카테고리 기반 알림
       if (category) {
-        // 카테고리 관심 사용자들에게 알림 (추후 구현 예정)
-        // await sendNotificationByCategory(
-        //   category,
-        //   `${category} 카테고리에 새로운 글이 올라왔어요!`,
-        //   title,
-        //   `kch://community/detail?id=${communityData._id}`,
-        //   [userId]
-        // );
+        await sendNotificationByCategory(
+          `community_${category}`,
+          "커뮤니티에 새로운 글이 올라왔어요!",
+          title,
+          `kch://community/detail?id=${communityData._id}`,
+          [userId]
+        );
       }
 
       res.json({

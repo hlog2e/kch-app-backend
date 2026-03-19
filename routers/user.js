@@ -72,6 +72,13 @@ router.post(
 );
 
 router.post(
+  "/communityNotificationSetting/toggle",
+  [body("isRegister").notEmpty(), validator],
+  checkToken,
+  userController.postToggleAllCommunityNotification
+);
+
+router.post(
   "/reset-block-users",
   checkToken,
   userController.resetBlockUserList
