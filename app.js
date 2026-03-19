@@ -15,6 +15,7 @@ const getWeatherAndNotify = require("./schedule/getWeatherAndNotify");
 const notifyMealLaunch = require("./schedule/notifyMealLaunch");
 const getPhotosFromHomepage = require("./schedule/getPhotosFromHomepage");
 const getNoticesFromHomepage = require("./schedule/getNoticesFromHomepage");
+const notifyTopCommunity = require("./schedule/notifyTopCommunity");
 
 if (process.env.INSTANCE_VAR === undefined || process.env.INSTANCE_VAR === "0") {
   const telegram = require("./utils/telegram");
@@ -42,6 +43,10 @@ if (process.env.INSTANCE_VAR === undefined || process.env.INSTANCE_VAR === "0") 
   //10,40분 마다 학교 공지사항 업데이트
   schedule.scheduleJob("10,40 * * * *", () => {
     getNoticesFromHomepage();
+  });
+  // 매일 오후 6시 인기 게시글 알림
+  schedule.scheduleJob("0 18 * * *", () => {
+    notifyTopCommunity();
   });
 }
 

@@ -101,7 +101,7 @@ module.exports = {
     const { isRegister } = req.body;
 
     if (isRegister) {
-      const categories = ["general", "notice", "student", "club", "used", "question", "alumni"];
+      const categories = ["top", "general", "notice", "student", "club", "used", "question", "alumni"];
       const communityCategories = categories.map((id) => `community_${id}`);
 
       await User.updateOne(
