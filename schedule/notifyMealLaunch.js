@@ -25,7 +25,7 @@ module.exports = async function notifyMealLaunch() {
     "meal",
     "오늘의 중식",
     launch,
-    "kch://meal",
+    "kch://home",
     []
   );
 };

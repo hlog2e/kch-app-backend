@@ -154,7 +154,7 @@ module.exports = {
         //   category,
         //   `${category} 카테고리에 새로운 글이 올라왔어요!`,
         //   title,
-        //   "kch://community-detail-screen/" + communityData._id,
+        //   `kch://community/detail?id=${communityData._id}`,
         //   [userId]
         // );
       }

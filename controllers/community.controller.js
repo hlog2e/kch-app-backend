@@ -141,7 +141,7 @@ module.exports = {
     //   boardId,
     //   `${boardData.name} 게시판에 새로운 글이 올라왔어요!`,
     //   title,
-    //   "kch://community-detail-screen/" + communityData._id,
+    //   `kch://community/detail?id=${communityData._id}`,
     //   [userId]
     // );
 
@@ -277,7 +277,7 @@ module.exports = {
         receiverArray,
         `내 게시물 "${title}"에 댓글이 달렸어요!`,
         comment,
-        { link: "kch://community-detail-screen/" + communityId }
+        { link: `kch://community/detail?id=${communityId}` }
       );
     }
     //----------------------------------------------------------------------
