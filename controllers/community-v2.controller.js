@@ -36,7 +36,7 @@ module.exports = {
                 $divide: [
                   {
                     $add: [
-                      { $ifNull: ["$likeCount", 0] },
+                      { $multiply: [{ $ifNull: ["$likeCount", 0] }, 3] },
                       { $ifNull: ["$commentCount", 0] },
                       { $size: { $ifNull: ["$views", []] } },
                     ],
