@@ -33,11 +33,21 @@ function initialize() {
     return;
   }
 
+  // pm2 cluster에서 polling은 0번 워커만. 다른 워커는 sendPhoto 호출용으로만 봇 인스턴스 유지
+  const isPollingWorker =
+    process.env.INSTANCE_VAR === undefined || process.env.INSTANCE_VAR === "0";
+
   bot = new TelegramBot(token, {
-    polling: true,
+    polling: isPollingWorker,
     request: { agentClass: https.Agent, agentOptions: { family: 4 } },
   });
-  console.log("[Telegram] 봇 초기화 완료 (polling)");
+  console.log(
+    `[Telegram] 봇 초기화 완료 (polling=${isPollingWorker}, instance=${
+      process.env.INSTANCE_VAR ?? "none"
+    })`,
+  );
+
+  if (!isPollingWorker) return;
 
   // nodemon 재시작 시 이전 polling 정리
   process.once("SIGINT", () => {
@@ -128,14 +138,36 @@ function initialize() {
   });
 }
 
-async function notifyNewVerification(request) {
+function formatElapsed(ms) {
+  const minutes = Math.floor(ms / 60000);
+  if (minutes < 60) return `${minutes}분 전`;
+  const hours = Math.floor(minutes / 60);
+  if (hours < 24) return `${hours}시간 ${minutes % 60}분 전`;
+  const days = Math.floor(hours / 24);
+  return `${days}일 ${hours % 24}시간 전`;
+}
+
+async function notifyNewVerification(request, opts = {}) {
   if (!bot) return;
 
   const chatId = process.env.TELEGRAM_CHAT_ID;
   if (!chatId) return;
 
+  const {
+    isReminder = false,
+    attempts = 0,
+    elapsedMs = 0,
+    escalate = false,
+  } = opts;
+
   const typeLabel = TYPE_LABEL[request.type] || request.type;
+  const reminderHeader = isReminder
+    ? `${escalate ? "🚨" : "🔔"} 리마인더 #${attempts} · 최초 요청 ${formatElapsed(
+        elapsedMs,
+      )}\n━━━━━━━━━━━━\n`
+    : "";
   const caption =
+    reminderHeader +
     `📋 새로운 인증 요청\n` +
     `━━━━━━━━━━━━\n` +
     `이름: ${request.name}\n` +

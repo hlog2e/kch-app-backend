@@ -16,11 +16,14 @@ const notifyMealLaunch = require("./schedule/notifyMealLaunch");
 const getPhotosFromHomepage = require("./schedule/getPhotosFromHomepage");
 const getNoticesFromHomepage = require("./schedule/getNoticesFromHomepage");
 const notifyTopCommunity = require("./schedule/notifyTopCommunity");
+const remindPendingVerifications = require("./schedule/remindPendingVerifications");
+
+// 텔레그램 bot 인스턴스는 모든 워커에서 생성 (sendPhoto/sendMessage용)
+// polling/이벤트 핸들러는 initialize() 내부에서 0번 워커만 활성화
+const telegram = require("./utils/telegram");
+telegram.initialize();
 
 if (process.env.INSTANCE_VAR === undefined || process.env.INSTANCE_VAR === "0") {
-  const telegram = require("./utils/telegram");
-  telegram.initialize();
-
   schedule.scheduleJob("30 7 * * 1-5", () => {
     getWeatherAndNotify();
   });
@@ -47,6 +50,10 @@ if (process.env.INSTANCE_VAR === undefined || process.env.INSTANCE_VAR === "0") 
   // 매일 오후 6시 인기 게시글 알림
   schedule.scheduleJob("0 18 * * *", () => {
     notifyTopCommunity();
+  });
+  // 매시 정각 pending 인증 요청 재알림
+  schedule.scheduleJob("0 * * * *", () => {
+    remindPendingVerifications();
   });
 }
 

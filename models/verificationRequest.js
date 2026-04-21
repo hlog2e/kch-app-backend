@@ -21,6 +21,8 @@ const verificationRequestSchema = new mongoose.Schema(
       enum: ["pending", "approved", "rejected"],
     },
     rejectedReason: String,
+    notifyAttempts: { type: Number, default: 0 },
+    lastNotifiedAt: Date,
   },
   { timestamps: true, versionKey: false },
 );
