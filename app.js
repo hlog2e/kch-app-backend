@@ -17,6 +17,7 @@ const getPhotosFromHomepage = require("./schedule/getPhotosFromHomepage");
 const getNoticesFromHomepage = require("./schedule/getNoticesFromHomepage");
 const notifyTopCommunity = require("./schedule/notifyTopCommunity");
 const remindPendingVerifications = require("./schedule/remindPendingVerifications");
+const remindPendingReports = require("./schedule/remindPendingReports");
 
 // 텔레그램 bot 인스턴스는 모든 워커에서 생성 (sendPhoto/sendMessage용)
 // polling/이벤트 핸들러는 initialize() 내부에서 0번 워커만 활성화
@@ -54,6 +55,10 @@ if (process.env.INSTANCE_VAR === undefined || process.env.INSTANCE_VAR === "0") 
   // 매시 정각 pending 인증 요청 재알림
   schedule.scheduleJob("0 * * * *", () => {
     remindPendingVerifications();
+  });
+  // 매시 2분 pending 신고 재알림 (인증 리마인더와 발송 겹침 방지로 2분 오프셋)
+  schedule.scheduleJob("2 * * * *", () => {
+    remindPendingReports();
   });
 }
 

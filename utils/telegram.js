@@ -1,6 +1,7 @@
 const https = require("https");
 const TelegramBot = require("node-telegram-bot-api");
 const verifyService = require("../services/verify.service");
+const reportService = require("../services/report.service");
 
 let bot = null;
 const pendingRejections = new Map(); // chatId → { requestId, messageId }
@@ -39,7 +40,12 @@ function initialize() {
 
   bot = new TelegramBot(token, {
     polling: isPollingWorker,
-    request: { agentClass: https.Agent, agentOptions: { family: 4 } },
+    // timeout: 소켓이 응답 없이 물려있으면 30초 후 끊어서 polling이 조용히 멈추는 것 방지
+    request: {
+      agentClass: https.Agent,
+      agentOptions: { family: 4 },
+      timeout: 30000,
+    },
   });
   console.log(
     `[Telegram] 봇 초기화 완료 (polling=${isPollingWorker}, instance=${
@@ -48,6 +54,25 @@ function initialize() {
   );
 
   if (!isPollingWorker) return;
+
+  // 핸들러 없이는 라이브러리가 에러를 `%j`로 찍어서 `{}`로만 남음 — 원인 파악 불가
+  bot.on("polling_error", (err) => {
+    console.error(
+      `[Telegram] polling_error: ${err.code || "UNKNOWN"} ${err.message}`,
+    );
+  });
+
+  // polling이 소리 없이 죽는 경우 대비 워치독 — 1분마다 확인 후 재시작
+  setInterval(async () => {
+    if (bot.isPolling()) return;
+    console.warn("[Telegram] polling 중단 감지 — 재시작 시도");
+    try {
+      await bot.startPolling({ restart: true });
+      console.log("[Telegram] polling 재시작 완료");
+    } catch (err) {
+      console.error("[Telegram] polling 재시작 실패:", err.message);
+    }
+  }, 60 * 1000);
 
   // nodemon 재시작 시 이전 polling 정리
   process.once("SIGINT", () => {
@@ -97,6 +122,36 @@ function initialize() {
           chatId,
           "거절 사유를 입력해주세요.\n취소하려면 /cancel 을 입력하세요.",
         );
+      } else if (data.startsWith("report_hide:")) {
+        const reportId = data.replace("report_hide:", "");
+        const result = await reportService.hideReportedContent(reportId);
+
+        if (result.success) {
+          const label =
+            result.report.targetType === "comment" ? "댓글" : "게시물";
+          await editMessage(`🙈 ${label} 숨김 처리 완료`, chatId, messageId);
+        } else {
+          await bot.answerCallbackQuery(query.id, {
+            text: result.reason,
+            show_alert: true,
+          });
+        }
+      } else if (data.startsWith("report_dismiss:")) {
+        const reportId = data.replace("report_dismiss:", "");
+        const result = await reportService.dismissReport(reportId);
+
+        if (result.success) {
+          await editMessage(
+            "✋ 신고 무시 처리됨 (콘텐츠 유지)",
+            chatId,
+            messageId,
+          );
+        } else {
+          await bot.answerCallbackQuery(query.id, {
+            text: result.reason,
+            show_alert: true,
+          });
+        }
       }
     } catch (err) {
       console.error("[Telegram] 콜백 처리 오류:", err);
@@ -209,7 +264,75 @@ async function notifyNewVerification(request, opts = {}) {
   }
 }
 
+async function notifyNewReport(info, opts = {}) {
+  if (!bot) return;
+
+  const chatId = process.env.TELEGRAM_CHAT_ID;
+  if (!chatId) return;
+
+  const { report, post, comment, reporters } = info;
+  const {
+    isReminder = false,
+    attempts = 0,
+    elapsedMs = 0,
+    escalate = false,
+  } = opts;
+
+  const targetLabel = report.targetType === "comment" ? "댓글" : "게시물";
+  const reminderHeader = isReminder
+    ? `${escalate ? "🚨" : "🔔"} 리마인더 #${attempts} · 최초 신고 ${formatElapsed(
+        elapsedMs,
+      )}\n━━━━━━━━━━━━\n`
+    : "";
+
+  const preview = (text) =>
+    !text ? "(내용 없음)" : text.length > 100 ? `${text.slice(0, 100)}…` : text;
+
+  const reporterNames = reporters.map((u) => u?.name).filter(Boolean);
+  const reporterLine =
+    reporterNames.slice(0, 5).join(", ") +
+    (reporterNames.length > 5 ? ` 외 ${reporterNames.length - 5}명` : "");
+
+  const authorName =
+    report.targetType === "comment"
+      ? comment?.issuer?.name
+      : post?.publisher?.name;
+
+  const lines = [
+    `🚩 ${targetLabel} 신고 접수`,
+    `━━━━━━━━━━━━`,
+    `게시물: ${post ? post.title : "(삭제된 게시물)"}`,
+  ];
+  if (report.targetType === "comment") {
+    lines.push(`댓글: ${comment ? preview(comment.comment) : "(삭제된 댓글)"}`);
+  } else {
+    lines.push(`내용: ${post ? preview(post.content) : "-"}`);
+  }
+  lines.push(`작성자: ${authorName || "알 수 없음"}`);
+  lines.push(
+    `신고자: ${reporterLine || "알 수 없음"} (누적 ${report.reporters.length}명)`,
+  );
+
+  const keyboard = {
+    inline_keyboard: [
+      [
+        { text: "🙈 숨김 처리", callback_data: `report_hide:${report._id}` },
+        { text: "✋ 신고 무시", callback_data: `report_dismiss:${report._id}` },
+      ],
+    ],
+  };
+
+  try {
+    await bot.sendMessage(chatId, reminderHeader + lines.join("\n"), {
+      reply_markup: keyboard,
+    });
+  } catch (err) {
+    console.error("[Telegram] 신고 알림 전송 실패:", err.message);
+  }
+}
+
 module.exports = {
   initialize,
   notifyNewVerification,
+  notifyNewReport,
 };

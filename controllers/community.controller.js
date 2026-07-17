@@ -8,6 +8,8 @@ const {
   sendNotification,
   sendNotificationByCategory,
 } = require("../utils/expo-notifications");
+const reportService = require("../services/report.service");
+const telegram = require("../utils/telegram");
 
 module.exports = {
   getCommunityBoards: async (req, res) => {
@@ -372,7 +374,11 @@ module.exports = {
       { $addToSet: { reports: userId } }
     );
 
-    //TODO: 여기에 관리자에게 noti 하는 로직 추가
+    // 관리자 텔레그램 알림 (fire-and-forget)
+    reportService
+      .submitReport({ targetType: "post", targetId: postId, reporterId: userId })
+      .then((info) => telegram.notifyNewReport(info))
+      .catch(console.error);
 
     res.json({ status: 200, message: "정상적으로 신고처리 되었습니다." });
   },
@@ -388,7 +394,15 @@ module.exports = {
       { $addToSet: { reports: userId } }
     );
 
-    //TODO: 여기에 관리자에게 noti 하는 로직 추가
+    // 관리자 텔레그램 알림 (fire-and-forget)
+    reportService
+      .submitReport({
+        targetType: "comment",
+        targetId: commentId,
+        reporterId: userId,
+      })
+      .then((info) => telegram.notifyNewReport(info))
+      .catch(console.error);
 
     res.json({
       status: 200,

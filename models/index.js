@@ -8,6 +8,8 @@ require("./communityBoard");
 require("./communityComment");
 require("./banner");
 require("./pushToken");
+require("./verificationRequest");
+require("./contentReport");
 
 mongoose.connect(process.env.MONGO_URI, {
   auth: { authSource: "admin" },
